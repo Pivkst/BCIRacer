@@ -242,8 +242,10 @@ enum textureNames{
 
 bool loadTextures(){
     std::ifstream file("texturePaths.txt");
-    if(!file.is_open())
+    if(!file.is_open()){
+        writeToLog("Couldn't open texturePaths.txt");
         return false;
+    }
     bool success = true;
     std::string line;
     while(std::getline(file, line)){
