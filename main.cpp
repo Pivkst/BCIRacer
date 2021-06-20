@@ -42,7 +42,7 @@ static int SCREEN_WIDTH = 1280, SCREEN_HEIGHT = 720;
 static int VANISH_Y = 200;
 static int ZERO_Y = 620;
 int mapXposition(int x, double scale){
-    return 1280/2 + static_cast<int>(static_cast<double>(x - 1280/2) * scale);
+    return SCREEN_WIDTH/2 + static_cast<int>(static_cast<double>(x - SCREEN_WIDTH/2) * scale);
 }
 int mapYposition(int y){
     return std::min(ZERO_Y - y * (ZERO_Y-VANISH_Y) / 10000, 10000);
