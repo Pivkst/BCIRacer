@@ -38,13 +38,25 @@ void listener(int* state){
     }
 }
 
+static int SCREEN_WIDTH = 1280, SCREEN_HEIGHT = 720;
+static int VANISH_Y = 200;
+static int ZERO_Y = 620;
+int mapXposition(int x, double scale){
+    return 1280/2 + static_cast<int>(static_cast<double>(x - 1280/2) * scale);
+}
+int mapYposition(int y){
+    return std::min(ZERO_Y - y * (ZERO_Y-VANISH_Y) / 10000, 10000);
+}
+double mapScale(int y){
+    return std::max(1.0 - (static_cast<double>(y) / 10000), 0.0);
+}
+
 int main()
 {
     //SDL setup
     std::string title = "BCIGAME";
     initLog();
-    int w = 1280, h = 720;
-    initEnvironment(title, w, h, false);
+    initEnvironment(title, SCREEN_WIDTH, SCREEN_HEIGHT, false);
     initTTF();
     loadTextures();
     //loadSounds();
@@ -57,7 +69,8 @@ int main()
 
     //Game setup
     bool running = true;
-    int carx = w/2;
+    int carx = SCREEN_WIDTH/2;
+    int cary = 0;
 
     while(running){
         //Check for events
@@ -70,14 +83,15 @@ int main()
 
         //Game
         if(buttonState == LEFT)
-            carx-=10;
+            cary-=100;
         else if(buttonState == RIGHT)
-            carx+=10;
+            cary+=100;
 
         //Render
         SDL_SetRenderDrawColor(renderer, 0x00, 0xff, 0x00, 0xff);
         SDL_RenderClear(renderer);
-        textures[TEXTURE_CAR]->renderScaled(carx, h -100, 1.0);
+        double scale = mapScale(cary);
+        textures[TEXTURE_CAR]->renderScaled(mapXposition(carx, scale), mapYposition(cary), scale);
         SDL_RenderPresent(renderer);
     }
     closeLog();
