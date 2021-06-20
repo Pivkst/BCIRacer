@@ -57,7 +57,7 @@ int main()
 
     //Game setup
     bool running = true;
-    int carx = w/2 - 343/2;
+    int carx = w/2;
 
     while(running){
         //Check for events
@@ -77,7 +77,7 @@ int main()
         //Render
         SDL_SetRenderDrawColor(renderer, 0x00, 0xff, 0x00, 0xff);
         SDL_RenderClear(renderer);
-        textures[TEXTURE_CAR]->render(carx, h-212 -100);
+        textures[TEXTURE_CAR]->renderScaled(carx, h -100, 1.0);
         SDL_RenderPresent(renderer);
     }
     closeLog();

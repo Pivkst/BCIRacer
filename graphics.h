@@ -88,6 +88,7 @@ public:
     void setColor(Uint8, Uint8, Uint8); //Set color modulation
     void setAlpha(Uint8); //Set transparency modulation
     void render(int, int, double); //Renders texture at given point
+    void renderScaled(int, int, double);
     void render(int, int, int, double); //Renders texture clip n at given point
     void free(); //Deallocates texture
 private:
@@ -161,6 +162,17 @@ void LTexture::free(){
 void LTexture::render(int x=0, int y=0, double angle=0){
     SDL_Rect renderQuad = {x, y, w, h};
     SDL_RenderCopyEx(renderer, hardwareTexture, nullptr, &renderQuad, angle*180/M_PI, nullptr, SDL_FLIP_NONE);
+}
+void LTexture::renderScaled(int x, int y, double scale)
+{
+    int scaledWidth = static_cast<int>(w * scale);
+    int scaledHeight = static_cast<int>(h * scale);
+    SDL_Rect scaleRect = {
+        x - scaledWidth/2,
+        y - scaledHeight,
+        scaledWidth,
+        scaledHeight};
+    SDL_RenderCopyEx(renderer, hardwareTexture, nullptr, &scaleRect, 0, nullptr, SDL_FLIP_NONE);
 }
 void LTexture::render(int x, int y, int n, double angle=0){
     SDL_Rect targetQuad = {x, y, clipw, cliph};
