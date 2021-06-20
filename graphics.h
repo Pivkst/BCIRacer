@@ -249,6 +249,7 @@ void drawText(int x, int y, std::string text, int fontID = CONSOLA, int colorID=
 //Load textures
 static std::vector<LTexture*> textures; //Remember to "delete" textures before removing them from this vector
 enum textureNames{
+    TEXTURE_BACKGROUND,
     TEXTURE_CAR
 };
 

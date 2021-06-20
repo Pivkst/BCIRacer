@@ -90,6 +90,7 @@ int main()
         //Render
         SDL_SetRenderDrawColor(renderer, 0x00, 0xff, 0x00, 0xff);
         SDL_RenderClear(renderer);
+        textures[TEXTURE_BACKGROUND]->render();
         double scale = mapScale(cary);
         textures[TEXTURE_CAR]->renderScaled(mapXposition(carx, scale), mapYposition(cary), scale);
         SDL_RenderPresent(renderer);

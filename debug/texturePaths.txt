@@ -1,1 +1,2 @@
+textures\background.bmp
 textures\car.bmp
