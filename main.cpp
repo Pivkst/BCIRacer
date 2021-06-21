@@ -2,6 +2,7 @@
 #include <network.h>
 #include <thread>
 #include <graphics.h>
+#include <math.h>
 
 enum buttonStates{
     NONE,
@@ -41,14 +42,21 @@ void listener(int* state){
 static int SCREEN_WIDTH = 1280, SCREEN_HEIGHT = 720;
 static int VANISH_Y = 200;
 static int ZERO_Y = 620;
+double reScaleY(int y){
+    double newY = static_cast<double>(y)/1000;
+    if(newY > 0)
+        return atan(newY) * 2 / M_PI;
+    else
+        return newY;
+}
 int mapXposition(int x, double scale){
     return SCREEN_WIDTH/2 + static_cast<int>(static_cast<double>(x - SCREEN_WIDTH/2) * scale);
 }
 int mapYposition(int y){
-    return std::min(ZERO_Y - y * (ZERO_Y-VANISH_Y) / 10000, 10000);
+    return ZERO_Y - static_cast<int>(reScaleY(y) * (ZERO_Y-VANISH_Y));
 }
 double mapScale(int y){
-    return std::max(1.0 - (static_cast<double>(y) / 10000), 0.0);
+    return std::max(1.0 - (reScaleY(y)), 0.0);
 }
 
 int main()
