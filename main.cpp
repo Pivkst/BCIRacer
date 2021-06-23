@@ -81,9 +81,11 @@ int main()
 
     //Game setup
     bool running = true;
+    bool gameOver = false;
     int carx = SCREEN_WIDTH/2;
     int cary = 0;
     std::vector<SDL_Point> cars;
+    SDL_Point fatalCar;
     srand(888888);
 
     while(running){
@@ -101,11 +103,19 @@ int main()
         else if(buttonState == RIGHT)
             carx+=10;
         if(rand()%50 == 0){
-            SDL_Point newPoint = {200 + rand()%(SCREEN_WIDTH-400), TOP_Y};
-            cars.push_back(newPoint);
+            SDL_Point newCar = {200 + rand()%(SCREEN_WIDTH-400), TOP_Y};
+            cars.push_back(newCar);
         }
         for(auto i = cars.begin(); i<cars.end(); i++){
             i->y -= 50;
+            //Check for collision
+            if(i->y<0 && i->y>-100 && i->x>(carx-200) && i->x<(carx+200)){
+                running = false;
+                gameOver = true;
+                i->y += 50; //Adjust car position back to the player's front
+                fatalCar = *i;
+                break;
+            }
         }
         //TODO clean up offscreen cars
 
@@ -118,16 +128,15 @@ int main()
         int lastcary = 0;
             //Draw cars
         for(auto i = cars.rbegin(); i<cars.rend(); i++){
-            SDL_Point car = *i;
-            if(car.y < 0 && playerCarDrawn == false){
+            if(i->y < 0 && playerCarDrawn == false){
                 //Draw player car
                 scale = mapScale(cary);
                 textures[TEXTURE_CAR]->renderScaled(mapXposition(carx, scale), mapYposition(cary), scale);
                 playerCarDrawn = true;
             }
-            scale = mapScale(car.y);
-            textures[TEXTURE_CAR]->renderScaled(mapXposition(car.x, scale), mapYposition(car.y), scale);
-            lastcary = car.y;
+            scale = mapScale(i->y);
+            textures[TEXTURE_CAR]->renderScaled(mapXposition(i->x, scale), mapYposition(i->y), scale);
+            lastcary = i->y;
         }
         if(!playerCarDrawn){
             //Draw player car if it hasn't been drawn yet
@@ -139,6 +148,26 @@ int main()
 
         drawText(10, 10, std::to_string(lastcary));
         SDL_RenderPresent(renderer);
+    }
+    if(gameOver){
+        //Show game over screen
+        SDL_SetRenderDrawColor(renderer, 0xcc, 0x00, 0x00, 0xff);
+        SDL_RenderClear(renderer);
+        double scale = mapScale(fatalCar.y);
+        textures[TEXTURE_CAR]->renderScaled(mapXposition(fatalCar.x, scale), mapYposition(fatalCar.y), scale);
+        scale = mapScale(cary);
+        textures[TEXTURE_CAR]->renderScaled(mapXposition(carx, scale), mapYposition(cary), scale);
+        drawText(SCREEN_WIDTH/2, 200, "BAM", CONSOLA_BIG, BLACK, ALIGN_CENTER);
+        SDL_RenderPresent(renderer);
+        while(gameOver){
+            //Check for events
+            while(SDL_PollEvent(&e) != 0) {
+                switch(e.type){
+                    case SDL_QUIT: gameOver = false; break;
+                }
+            }
+            if(buttonState == STOP) gameOver = false;
+        }
     }
     closeLog();
     //Force exit to stop blocked listener thread

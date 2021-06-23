@@ -188,11 +188,11 @@ void LTexture::render(int x, int y, int n, double angle=0){
 }
 
 //True Type Fonts
-const int NUMBER_OF_FONTS = 1;
+const int NUMBER_OF_FONTS = 2;
 const int NUMBER_OF_COLORS = 7;
 static TTF_Font* fonts[NUMBER_OF_FONTS];
 enum fonts{
-    CONSOLA
+    CONSOLA, CONSOLA_BIG
 };
 static SDL_Color colors[NUMBER_OF_COLORS];
 enum colors{
@@ -217,6 +217,7 @@ bool initTTF(){
     colors[GRAY] = {100, 100, 100, 255};
     colors[LIGHTGRAY] = {200, 200, 200, 255};
     fonts[CONSOLA] = TTF_OpenFont("fonts\\consola.ttf", 28);
+    fonts[CONSOLA_BIG] = TTF_OpenFont("fonts\\consola.ttf", 200);
     if(fonts[CONSOLA] == nullptr){
         logError();
         return false;
