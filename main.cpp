@@ -3,6 +3,8 @@
 #include <thread>
 #include <graphics.h>
 #include <math.h>
+#include <vector>
+#include <stdlib.h> //srand, rand
 
 enum buttonStates{
     NONE,
@@ -42,6 +44,8 @@ void listener(int* state){
 static int SCREEN_WIDTH = 1280, SCREEN_HEIGHT = 720;
 static int VANISH_Y = 200;
 static int ZERO_Y = 620;
+static int TOP_Y = 50000;
+static int BOTTOM_Y = -2000;
 double reScaleY(int y){
     double newY = static_cast<double>(y)/1000;
     if(newY > 0)
@@ -79,6 +83,8 @@ int main()
     bool running = true;
     int carx = SCREEN_WIDTH/2;
     int cary = 0;
+    std::vector<SDL_Point> cars;
+    srand(888888);
 
     while(running){
         //Check for events
@@ -91,16 +97,32 @@ int main()
 
         //Game
         if(buttonState == LEFT)
-            cary-=100;
+            carx-=10;
         else if(buttonState == RIGHT)
-            cary+=100;
+            carx+=10;
+        if(rand()%20 == 0){
+            SDL_Point newPoint = {200 + rand()%(SCREEN_WIDTH-400), TOP_Y};
+            cars.push_back(newPoint);
+        }
+        for(auto i = cars.begin(); i<cars.end(); i++){
+            i->y -= 50;
+        }
+        //TODO clean up offscreen cars
 
         //Render
         SDL_SetRenderDrawColor(renderer, 0x00, 0xff, 0x00, 0xff);
         SDL_RenderClear(renderer);
         textures[TEXTURE_BACKGROUND]->render();
-        double scale = mapScale(cary);
+        double scale = 0;
+            //Draw obstacles
+        for(auto car = cars.rbegin(); car<cars.rend(); car++){
+            scale = mapScale((*car).y);
+            textures[TEXTURE_CAR]->renderScaled(mapXposition((*car).x, scale), mapYposition((*car).y), scale);
+        }
+            //Draw player
+        scale = mapScale(cary);
         textures[TEXTURE_CAR]->renderScaled(mapXposition(carx, scale), mapYposition(cary), scale);
+        drawText(10, 10, std::to_string(cary));
         SDL_RenderPresent(renderer);
     }
     closeLog();
