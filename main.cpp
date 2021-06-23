@@ -100,7 +100,7 @@ int main()
             carx-=10;
         else if(buttonState == RIGHT)
             carx+=10;
-        if(rand()%20 == 0){
+        if(rand()%50 == 0){
             SDL_Point newPoint = {200 + rand()%(SCREEN_WIDTH-400), TOP_Y};
             cars.push_back(newPoint);
         }
@@ -113,16 +113,31 @@ int main()
         SDL_SetRenderDrawColor(renderer, 0x00, 0xff, 0x00, 0xff);
         SDL_RenderClear(renderer);
         textures[TEXTURE_BACKGROUND]->render();
+        bool playerCarDrawn = false;
         double scale = 0;
-            //Draw obstacles
-        for(auto car = cars.rbegin(); car<cars.rend(); car++){
-            scale = mapScale((*car).y);
-            textures[TEXTURE_CAR]->renderScaled(mapXposition((*car).x, scale), mapYposition((*car).y), scale);
+        int lastcary = 0;
+            //Draw cars
+        for(auto i = cars.rbegin(); i<cars.rend(); i++){
+            SDL_Point car = *i;
+            if(car.y < 0 && playerCarDrawn == false){
+                //Draw player car
+                scale = mapScale(cary);
+                textures[TEXTURE_CAR]->renderScaled(mapXposition(carx, scale), mapYposition(cary), scale);
+                playerCarDrawn = true;
+            }
+            scale = mapScale(car.y);
+            textures[TEXTURE_CAR]->renderScaled(mapXposition(car.x, scale), mapYposition(car.y), scale);
+            lastcary = car.y;
         }
-            //Draw player
-        scale = mapScale(cary);
-        textures[TEXTURE_CAR]->renderScaled(mapXposition(carx, scale), mapYposition(cary), scale);
-        drawText(10, 10, std::to_string(cary));
+        if(!playerCarDrawn){
+            //Draw player car if it hasn't been drawn yet
+            scale = mapScale(cary);
+            textures[TEXTURE_CAR]->renderScaled(mapXposition(carx, scale), mapYposition(cary), scale);
+            playerCarDrawn = true;
+        }
+
+
+        drawText(10, 10, std::to_string(lastcary));
         SDL_RenderPresent(renderer);
     }
     closeLog();
