@@ -46,6 +46,7 @@ static int VANISH_Y = 200;
 static int ZERO_Y = 620;
 static int TOP_Y = 50000;
 static int BOTTOM_Y = -2000;
+static int CAR_WIDTH = 240; //This is slightly slimmer than the car texture on purpose
 double reScaleY(int y){
     double newY = static_cast<double>(y)/1000;
     if(newY > 0)
@@ -82,8 +83,10 @@ int main()
     //Game setup
     bool running = true;
     bool gameOver = false;
+    double scale = 0;
     int carx = SCREEN_WIDTH/2;
     int cary = 0;
+    int liney = 0;
     std::vector<SDL_Point> cars;
     SDL_Point fatalCar;
     srand(888888);
@@ -98,9 +101,9 @@ int main()
         if(buttonState == STOP) running = false;
 
         //Game
-        if(buttonState == LEFT)
+        if(buttonState == LEFT && carx >= CAR_WIDTH/2)
             carx-=10;
-        else if(buttonState == RIGHT)
+        else if(buttonState == RIGHT && carx <= SCREEN_WIDTH-CAR_WIDTH/2)
             carx+=10;
         if(rand()%50 == 0){
             SDL_Point newCar = {200 + rand()%(SCREEN_WIDTH-400), TOP_Y};
@@ -109,7 +112,7 @@ int main()
         for(auto i = cars.begin(); i<cars.end(); i++){
             i->y -= 50;
             //Check for collision
-            if(i->y<0 && i->y>-100 && i->x>(carx-200) && i->x<(carx+200)){
+            if(i->y<0 && i->y>-100 && i->x>(carx-240) && i->x<(carx+240)){
                 running = false;
                 gameOver = true;
                 i->y += 50; //Adjust car position back to the player's front
@@ -122,11 +125,19 @@ int main()
         //Render
         SDL_SetRenderDrawColor(renderer, 0x00, 0xff, 0x00, 0xff);
         SDL_RenderClear(renderer);
+            //Draw background
         textures[TEXTURE_BACKGROUND]->render();
-        bool playerCarDrawn = false;
-        double scale = 0;
-        int lastcary = 0;
+            //Draw road lines
+        liney++;
+        if(liney == 20)
+            liney = 0;
+            for(int y = -2000 -liney*16; y<40000; y+=static_cast<int>(1000/scale)){
+                scale = mapScale(y);
+                textures[TEXTURE_LINE]->renderScaled(mapXposition(640, scale), mapYposition(y), scale);
+            }
             //Draw cars
+        bool playerCarDrawn = false;
+        int lastcary = 0;
         for(auto i = cars.rbegin(); i<cars.rend(); i++){
             if(i->y < 0 && playerCarDrawn == false){
                 //Draw player car
