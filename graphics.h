@@ -8,6 +8,7 @@
 #include <string>
 #include <logging.h>
 #include <vector>
+#include <math.h>
 
 void logError(){
     std::string error = SDL_GetError();
@@ -274,6 +275,71 @@ bool loadTextures(){
     if(success) writeToLog(std::to_string(textures.size()) + " textures loaded");
     else writeToLog("Textures not loaded properly");
     return success;
+}
+
+double reScaleY(int y){
+    double newY = static_cast<double>(y)/1000;
+    if(newY > 0)
+        return atan(newY) * 2 / M_PI;
+    else
+        return newY;
+}
+int mapXposition(int x, double scale){
+    return windowSurface->w/2 + static_cast<int>(static_cast<double>(x - windowSurface->w/2) * scale);
+}
+int mapYposition(int y){
+    int ZERO_Y = windowSurface->h - 100;
+    int VANISH_Y = 200;
+    return ZERO_Y - static_cast<int>(reScaleY(y) * (ZERO_Y-VANISH_Y));
+}
+double mapScale(int y){
+    return std::max(1.0 - (reScaleY(y)), 0.0);
+}
+
+void drawGame(int frame, SDL_Point playerCar, std::vector<SDL_Point> cars, std::string debug = ""){
+    int liney = frame%20;
+    double scale = 0;
+    SDL_SetRenderDrawColor(renderer, 0x00, 0xff, 0x00, 0xff);
+    SDL_RenderClear(renderer);
+    //Draw background
+    textures[TEXTURE_BACKGROUND]->render();
+    //Draw road lines
+    for(int y = -2000 -liney*16; y<40000; y+=static_cast<int>(1000/scale)){
+        scale = mapScale(y);
+        textures[TEXTURE_LINE]->renderScaled(mapXposition(windowSurface->w/2, scale), mapYposition(y), scale);
+    }
+    //Draw cars
+    bool playerCarDrawn = false;
+    for(auto i = cars.rbegin(); i<cars.rend(); i++){
+        if(i->y < 0 && playerCarDrawn == false){
+            //Draw player car
+            scale = mapScale(playerCar.y);
+            textures[TEXTURE_CAR]->renderScaled(mapXposition(playerCar.x, scale), mapYposition(playerCar.y), scale);
+            playerCarDrawn = true;
+        }
+        scale = mapScale(i->y);
+        textures[TEXTURE_CAR]->renderScaled(mapXposition(i->x, scale), mapYposition(i->y), scale);
+    }
+    //Draw player car if it hasn't been drawn yet
+    if(!playerCarDrawn){
+        scale = mapScale(playerCar.y);
+        textures[TEXTURE_CAR]->renderScaled(mapXposition(playerCar.x, scale), mapYposition(playerCar.y), scale);
+        playerCarDrawn = true;
+    }
+    if(debug != "")
+        drawText(10, 10, debug);
+    SDL_RenderPresent(renderer);
+}
+
+void drawGameOver(SDL_Point playerCar, SDL_Point fatalCar){
+    SDL_SetRenderDrawColor(renderer, 0xcc, 0x00, 0x00, 0xff);
+    SDL_RenderClear(renderer);
+    double scale = mapScale(fatalCar.y);
+    textures[TEXTURE_CAR]->renderScaled(mapXposition(fatalCar.x, scale), mapYposition(fatalCar.y), scale);
+    scale = mapScale(playerCar.y);
+    textures[TEXTURE_CAR]->renderScaled(mapXposition(playerCar.x, scale), mapYposition(playerCar.y), scale);
+    drawText(windowSurface->w/2, 200, "BAM", CONSOLA_BIG, BLACK, ALIGN_CENTER);
+    SDL_RenderPresent(renderer);
 }
 
 #endif // GRAPHICS_H
