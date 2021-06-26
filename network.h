@@ -79,4 +79,39 @@ void recieve(socketData* mySocket, char* output){
     return;
 }
 
+enum buttonStates{
+    NONE,
+    LEFT,
+    RIGHT,
+    BOTH,
+    STOP
+};
+
+void listener(int* state){
+    char message[BUFLEN];
+    const char* noneCode = "none";
+    const char* leftCode = "left";
+    const char* rightCode = "right";
+    const char* bothCode = "both";
+    const char* exitCode = "end";
+    socketData socket;
+    initSocket(&socket);
+    printf("Waiting for data...\n");
+    while(true){
+        recieve(&socket, message);
+        if(strcmp(message, noneCode) == 0)
+            *state = NONE;
+        if(strcmp(message, leftCode) == 0)
+            *state = LEFT;
+        if(strcmp(message, rightCode) == 0)
+            *state = RIGHT;
+        if(strcmp(message, bothCode) == 0)
+            *state = BOTH;
+        if(strcmp(message, exitCode) == 0)
+            *state = STOP;
+        //printf(" recieved: %s\n" , message);
+        //fflush(stdout);
+    }
+}
+
 #endif // NETWORK_H
