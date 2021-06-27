@@ -62,8 +62,14 @@ int main()
                 break;
             }
         }
-        //TODO clean up offscreen cars
-        std::string debugString = "debug";
+        //Clean up offscreen cars
+        if(cars.size() > 100){
+            auto firstVisibleCar = cars.begin();
+            while(firstVisibleCar->y < BOTTOM_Y)
+                firstVisibleCar++;
+            cars.erase(cars.begin(), firstVisibleCar-1);
+        }
+        std::string debugString = std::to_string(cars.size());
         drawGame(frame, playerCar, cars, debugString);
         frame++;
     }
