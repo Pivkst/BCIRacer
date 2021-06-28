@@ -84,7 +84,8 @@ enum buttonStates{
     LEFT,
     RIGHT,
     BOTH,
-    STOP
+    STOP,
+    START
 };
 
 void listener(int* state){
@@ -94,6 +95,7 @@ void listener(int* state){
     const char* rightCode = "right";
     const char* bothCode = "both";
     const char* exitCode = "end";
+    const char* startCode = "start";
     socketData socket;
     initSocket(&socket);
     printf("Waiting for data...\n");
@@ -109,6 +111,8 @@ void listener(int* state){
             *state = BOTH;
         if(strcmp(message, exitCode) == 0)
             *state = STOP;
+        if(strcmp(message, startCode) == 0)
+            *state = START;
         //printf(" recieved: %s\n" , message);
         //fflush(stdout);
     }
