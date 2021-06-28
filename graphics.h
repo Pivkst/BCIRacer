@@ -251,7 +251,9 @@ void drawText(int x, int y, std::string text, int fontID = CONSOLA, int colorID=
 //Load textures
 static std::vector<LTexture*> textures; //Remember to "delete" textures before removing them from this vector
 enum textureNames{
-    TEXTURE_LINE,
+    TEXTURE_LINE1,
+    TEXTURE_LINE2,
+    TEXTURE_LINE3,
     TEXTURE_BACKGROUND,
     TEXTURE_CAR
 };
@@ -304,10 +306,13 @@ void drawGame(int frame, SDL_Point playerCar, std::vector<SDL_Point> cars, std::
     //Draw background
     textures[TEXTURE_BACKGROUND]->render();
     //Draw road lines
-    for(int y = -2000 -liney*16; y<40000; y+=static_cast<int>(1000/scale)){
+    for(int y = 0 -liney*50; y<15000; y+=1000){
         scale = mapScale(y);
-        textures[TEXTURE_LINE]->renderScaled(mapXposition(windowSurface->w/2, scale), mapYposition(y), scale);
+        textures[TEXTURE_LINE1]->renderScaled(mapXposition(1*windowSurface->w/4, scale), mapYposition(y), scale*0.5);
+        textures[TEXTURE_LINE2]->renderScaled(mapXposition(2*windowSurface->w/4, scale), mapYposition(y), scale*0.5);
+        textures[TEXTURE_LINE3]->renderScaled(mapXposition(3*windowSurface->w/4, scale), mapYposition(y), scale*0.5);
     }
+
     //Draw cars
     bool playerCarDrawn = false;
     for(auto i = cars.rbegin(); i<cars.rend(); i++){
