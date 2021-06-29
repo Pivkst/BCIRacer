@@ -1,11 +1,15 @@
 #ifndef NETWORK_H
 #define NETWORK_H
+#define SDL_MAIN_HANDLED
 
 #include <winsock2.h>
 #include <logging.h>
+#include <SDL.h>
 
 #define BUFLEN 512
 #define PORT 1234
+
+static const Uint32 CUSTOM_EVENT_TYPE = SDL_RegisterEvents(1);
 
 struct socketData{
     SOCKET socket_in = INVALID_SOCKET, socket_out = INVALID_SOCKET;
@@ -45,6 +49,12 @@ int initSocket(socketData* mySocket){
         exit(EXIT_FAILURE);
     }
     writeToLog("Sockets bound");
+
+    //Check if the custom SDL event was registered
+    if(CUSTOM_EVENT_TYPE == (Uint32)-1){
+        writeToLog("Failed to register custom SDL event");
+        exit(EXIT_FAILURE);
+    }
     return 0;
 }
 
@@ -103,16 +113,40 @@ void listener(int* state){
         recieve(&socket, message);
         if(strcmp(message, noneCode) == 0)
             *state = NONE;
-        if(strcmp(message, leftCode) == 0)
+        if(strcmp(message, leftCode) == 0){
             *state = LEFT;
-        if(strcmp(message, rightCode) == 0)
+            SDL_Event sdlEvent;
+            SDL_memset(&sdlEvent, 0, sizeof(sdlEvent));
+            sdlEvent.type = CUSTOM_EVENT_TYPE;
+            sdlEvent.user.code = LEFT;
+            SDL_PushEvent(&sdlEvent);
+        }
+        if(strcmp(message, rightCode) == 0){
             *state = RIGHT;
+            SDL_Event sdlEvent;
+            SDL_memset(&sdlEvent, 0, sizeof(sdlEvent));
+            sdlEvent.type = CUSTOM_EVENT_TYPE;
+            sdlEvent.user.code = RIGHT;
+            SDL_PushEvent(&sdlEvent);
+        }
         if(strcmp(message, bothCode) == 0)
             *state = BOTH;
-        if(strcmp(message, exitCode) == 0)
+        if(strcmp(message, exitCode) == 0){
             *state = STOP;
-        if(strcmp(message, startCode) == 0)
+            SDL_Event sdlEvent;
+            SDL_memset(&sdlEvent, 0, sizeof(sdlEvent));
+            sdlEvent.type = CUSTOM_EVENT_TYPE;
+            sdlEvent.user.code = STOP;
+            SDL_PushEvent(&sdlEvent);
+        }
+        if(strcmp(message, startCode) == 0){
             *state = START;
+            SDL_Event sdlEvent;
+            SDL_memset(&sdlEvent, 0, sizeof(sdlEvent));
+            sdlEvent.type = CUSTOM_EVENT_TYPE;
+            sdlEvent.user.code = START;
+            SDL_PushEvent(&sdlEvent);
+        }
         //printf(" recieved: %s\n" , message);
         //fflush(stdout);
     }
