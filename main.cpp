@@ -34,6 +34,8 @@ int main()
     SDL_Point fatalCar;
     srand(888888);
     std::string debugString = "";
+    int lastSpawnFrame = 0;
+    int spawnDelay = 200;
 
     while(running){
         //Check for events
@@ -47,18 +49,24 @@ int main()
 
         if(!paused)
         {
-            //Game
+            //Move player car
             if(buttonState == LEFT && playerCar.x >= CAR_WIDTH/2)
                 playerCar.x-=10;
             else if(buttonState == RIGHT && playerCar.x <= SCREEN_WIDTH-CAR_WIDTH/2)
                 playerCar.x+=10;
-            if(rand()%50 == 0){
+            //Place new cars
+            if(frame-lastSpawnFrame >= spawnDelay /*rand()%50 == 0*/){
                 SDL_Point newCar = {200 + rand()%(SCREEN_WIDTH-400), TOP_Y};
                 cars.push_back(newCar);
+                lastSpawnFrame = frame;
+                if(spawnDelay > 100)
+                    spawnDelay -= 5;
+                else if(spawnDelay > 50)
+                    spawnDelay -= 2;
             }
+            //Check for collision
             for(auto i = cars.begin(); i<cars.end(); i++){
                 i->y -= 50;
-                //Check for collision
                 if(i->y<0 && i->y>-100 && i->x>(playerCar.x-240) && i->x<(playerCar.x+240)){
                     running = false;
                     gameOver = true;
@@ -74,7 +82,7 @@ int main()
                     firstVisibleCar++;
                 cars.erase(cars.begin(), firstVisibleCar-1);
             }
-            debugString = std::to_string(cars.size());
+            debugString = std::to_string(spawnDelay);
             frame++;
         }
         drawGame(frame, playerCar, cars, debugString);
