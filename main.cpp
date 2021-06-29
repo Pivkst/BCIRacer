@@ -22,6 +22,7 @@ int main()
     std::thread listenerThread (listener, &buttonState);
 
     //Game setup
+    bool aligned = true;
     bool running = true;
     bool paused = true;
     bool gameOver = false;
@@ -30,6 +31,7 @@ int main()
     static int BOTTOM_Y = -2000;
     static int CAR_WIDTH = 240; //This is slightly slimmer than the car texture on purpose
     SDL_Point playerCar = {SCREEN_WIDTH/2, 0};
+    int playerCarLane = 0; //Used in aligned mode
     std::vector<SDL_Point> cars;
     SDL_Point fatalCar;
     srand(888888);
@@ -43,20 +45,46 @@ int main()
             switch(e.type){
                 case SDL_QUIT: running = false; break;
             }
+            //Check for custom events
+            if(e.type == CUSTOM_EVENT_TYPE){
+                switch (e.user.code) {
+                case START: paused = false; break;
+                case STOP: running = false; break;
+                case LEFT:
+                    if(playerCarLane>0)
+                        playerCarLane--;
+                    break;
+                case RIGHT:
+                    if(playerCarLane<3)
+                        playerCarLane++;
+                    break;
+                }
+            }
         }
-        if(buttonState == STOP) running = false;
-        else if(buttonState == START) paused = false;
 
         if(!paused)
         {
             //Move player car
-            if(buttonState == LEFT && playerCar.x >= CAR_WIDTH/2)
-                playerCar.x-=10;
-            else if(buttonState == RIGHT && playerCar.x <= SCREEN_WIDTH-CAR_WIDTH/2)
-                playerCar.x+=10;
+            if(aligned){
+                int targetX = SCREEN_WIDTH/8 + playerCarLane*SCREEN_WIDTH/4;
+                if(targetX > playerCar.x+20)
+                    playerCar.x += 20;
+                else if(targetX < playerCar.x-20)
+                    playerCar.x -= 20;
+            }
+            else{
+                if(buttonState == LEFT && playerCar.x >= CAR_WIDTH/2)
+                    playerCar.x-=10;
+                else if(buttonState == RIGHT && playerCar.x <= SCREEN_WIDTH-CAR_WIDTH/2)
+                    playerCar.x+=10;
+            }
             //Place new cars
             if(frame-lastSpawnFrame >= spawnDelay /*rand()%50 == 0*/){
-                SDL_Point newCar = {200 + rand()%(SCREEN_WIDTH-400), TOP_Y};
+                SDL_Point newCar;
+                if(aligned)
+                    newCar = {SCREEN_WIDTH/8 + (rand()%4)*SCREEN_WIDTH/4, TOP_Y};
+                else
+                    newCar = {200 + rand()%(SCREEN_WIDTH-400), TOP_Y};
                 cars.push_back(newCar);
                 lastSpawnFrame = frame;
                 if(spawnDelay > 100)
