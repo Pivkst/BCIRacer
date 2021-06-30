@@ -4,7 +4,7 @@
 #include <graphics.h>
 #include <stdlib.h> //srand, rand
 
-int main()
+int main(int argc, char** argv)
 {
     //SDL setup
     std::string title = "BCIGAME";
@@ -22,7 +22,10 @@ int main()
     std::thread listenerThread (listener, &buttonState);
 
     //Game setup
-    bool aligned = true;
+    bool aligned = false;
+    if(argc > 1)
+        if(std::string(argv[1]) == "aligned")
+            aligned = true;
     bool running = true;
     bool paused = true;
     bool gameOver = false;
@@ -30,8 +33,8 @@ int main()
     static int TOP_Y = 50000;
     static int BOTTOM_Y = -2000;
     static int CAR_WIDTH = 240; //This is slightly slimmer than the car texture on purpose
-    SDL_Point playerCar = {SCREEN_WIDTH/2, 0};
-    int playerCarLane = 0; //Used in aligned mode
+    int playerCarLane = 2; //Used in aligned mode
+    SDL_Point playerCar = {SCREEN_WIDTH/8 + SCREEN_WIDTH/4*playerCarLane, 0};
     std::vector<SDL_Point> cars;
     SDL_Point fatalCar;
     srand(888888);
@@ -92,9 +95,10 @@ int main()
                 else if(spawnDelay > 50)
                     spawnDelay -= 2;
             }
-            //Check for collision
+            //Move cars
             for(auto i = cars.begin(); i<cars.end(); i++){
                 i->y -= 50;
+                //Check for collision
                 if(i->y<0 && i->y>-100 && i->x>(playerCar.x-240) && i->x<(playerCar.x+240)){
                     running = false;
                     gameOver = true;
@@ -110,9 +114,9 @@ int main()
                     firstVisibleCar++;
                 cars.erase(cars.begin(), firstVisibleCar-1);
             }
-            debugString = std::to_string(spawnDelay);
             frame++;
         }
+        if(argc>1)debugString = std::string(argv[1]);
         drawGame(frame, playerCar, cars, debugString);
     }
     if(gameOver){
