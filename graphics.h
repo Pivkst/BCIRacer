@@ -5,6 +5,7 @@
 #include <SDL.h>
 #include <SDL_mixer.h>
 #include <SDL_ttf.h>
+#include <SDL_image.h>
 #include <string>
 #include <logging.h>
 #include <vector>
@@ -30,6 +31,12 @@ bool initEnvironment(std::string windowTitle, int w, int h, bool fullscreen = fa
         return false;
     }
     basePath = std::string(SDL_GetBasePath());
+
+    int imgFlags = IMG_INIT_PNG;
+    if(!(IMG_Init(imgFlags) & imgFlags)){
+        logError();
+        return false;
+    }
 
     if( Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0 ){
         logError();
@@ -68,13 +75,14 @@ void toggleFullscreen(){
 }
 
 SDL_Surface* loadOptimizedSurface(std::string path){
-    SDL_Surface* surface = SDL_LoadBMP((basePath+path).c_str());
+    SDL_Surface* surface = IMG_Load((basePath+path).c_str());
     if(surface == nullptr){
         printf("Unable to load image: %s\n", SDL_GetError());
         return nullptr;
     }
-    SDL_Surface* optimizedSurface = SDL_ConvertSurface(surface, windowSurface->format, 0);
-    SDL_SetColorKey(optimizedSurface, SDL_TRUE, SDL_MapRGB(optimizedSurface->format, 0, 0xFF, 0xFF));
+    SDL_PixelFormat *format = SDL_AllocFormat(SDL_PIXELFORMAT_RGBA32);
+    SDL_Surface* optimizedSurface = SDL_ConvertSurface(surface, format, 0);
+    //SDL_SetColorKey(optimizedSurface, SDL_TRUE, SDL_MapRGB(optimizedSurface->format, 0, 0xFF, 0xFF));
     SDL_FreeSurface(surface);
     return optimizedSurface;
 }

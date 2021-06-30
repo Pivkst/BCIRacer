@@ -116,7 +116,7 @@ int main(int argc, char** argv)
             }
             frame++;
         }
-        if(argc>1)debugString = std::string(argv[1]);
+        if(argc>1)debugString = std::string(SDL_GetPixelFormatName(SDL_GetWindowPixelFormat(window)));
         drawGame(frame, playerCar, cars, debugString);
     }
     if(gameOver){

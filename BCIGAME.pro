@@ -43,3 +43,8 @@ win32: LIBS += -L$$PWD/'../../C++ resources/SDL2_mixer-2.0.4/x86_64-w64-mingw32/
 
 INCLUDEPATH += $$PWD/'../../C++ resources/SDL2_mixer-2.0.4/x86_64-w64-mingw32/include/SDL2'
 DEPENDPATH += $$PWD/'../../C++ resources/SDL2_mixer-2.0.4/x86_64-w64-mingw32/include/SDL2'
+
+win32: LIBS += -L$$PWD/'../../C++ resources/SDL2_image-2.0.5/x86_64-w64-mingw32/lib/' -lSDL2_image
+
+INCLUDEPATH += $$PWD/'../../C++ resources/SDL2_image-2.0.5/x86_64-w64-mingw32/include/SDL2'
+DEPENDPATH += $$PWD/'../../C++ resources/SDL2_image-2.0.5/x86_64-w64-mingw32/include/SDL2'

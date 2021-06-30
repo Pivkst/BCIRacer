@@ -1,5 +1,5 @@
-textures\line1.bmp
-textures\line2.bmp
-textures\line3.bmp
-textures\background.bmp
-textures\car.bmp
+textures\line1.png
+textures\line2.png
+textures\line3.png
+textures\background.png
+textures\car.png
