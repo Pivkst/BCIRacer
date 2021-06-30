@@ -3,6 +3,14 @@ import keyboard
 import threading
 from time import sleep
 
+#Start game
+import os, sys
+scriptLocation = os.path.dirname(os.path.abspath(sys.argv[0]))
+executableLocation = os.path.join(os.path.dirname(scriptLocation), "debug")
+os.chdir(executableLocation)
+gameThread = threading.Thread(target=os.system, args=("BCIGAME.exe aligned",))
+gameThread.start()
+
 #Socket setup
 IP = "localhost"
 PORT = 1235
@@ -83,6 +91,7 @@ def reciever():
 
 recieveThread = threading.Thread(target=reciever, daemon=True)
 recieveThread.start()
+sleep(1)
 send("hello")
 
 #Wait until ESC is pressed
@@ -91,3 +100,4 @@ keyboard.wait('esc')
 #Cleanup
 send("end")
 keyboard.unhook_all()
+gameThread.join()
