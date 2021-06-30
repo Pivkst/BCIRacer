@@ -23,11 +23,13 @@ void logError(){
 static SDL_Window* window = nullptr;
 static SDL_Surface* windowSurface = nullptr;
 static SDL_Renderer* renderer = nullptr;
+static std::string basePath;
 bool initEnvironment(std::string windowTitle, int w, int h, bool fullscreen = false){
     if( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_AUDIO ) < 0 ){
         logError();
         return false;
     }
+    basePath = std::string(SDL_GetBasePath());
 
     if( Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0 ){
         logError();
@@ -66,7 +68,7 @@ void toggleFullscreen(){
 }
 
 SDL_Surface* loadOptimizedSurface(std::string path){
-    SDL_Surface* surface = SDL_LoadBMP(path.c_str());
+    SDL_Surface* surface = SDL_LoadBMP((basePath+path).c_str());
     if(surface == nullptr){
         printf("Unable to load image: %s\n", SDL_GetError());
         return nullptr;
@@ -217,8 +219,8 @@ bool initTTF(){
     colors[BLUE] = {0, 0, 255, 255};
     colors[GRAY] = {100, 100, 100, 255};
     colors[LIGHTGRAY] = {200, 200, 200, 255};
-    fonts[CONSOLA] = TTF_OpenFont("fonts\\consola.ttf", 28);
-    fonts[CONSOLA_BIG] = TTF_OpenFont("fonts\\consola.ttf", 200);
+    fonts[CONSOLA] = TTF_OpenFont((basePath+"fonts\\consola.ttf").c_str(), 28);
+    fonts[CONSOLA_BIG] = TTF_OpenFont((basePath+"fonts\\consola.ttf").c_str(), 200);
     if(fonts[CONSOLA] == nullptr){
         logError();
         return false;
@@ -259,9 +261,10 @@ enum textureNames{
 };
 
 bool loadTextures(){
-    std::ifstream file("texturePaths.txt");
+    std::string texturePathsPath = basePath+"texturePaths.txt";
+    std::ifstream file(texturePathsPath);
     if(!file.is_open()){
-        writeToLog("Couldn't open texturePaths.txt");
+        writeToLog("Couldn't open "+texturePathsPath);
         return false;
     }
     bool success = true;
