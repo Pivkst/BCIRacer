@@ -8,7 +8,7 @@ import os, sys
 scriptLocation = os.path.dirname(os.path.abspath(sys.argv[0]))
 executableLocation = os.path.join(os.path.dirname(scriptLocation), "debug")
 os.chdir(executableLocation)
-gameThread = threading.Thread(target=os.system, args=("BCIGAME.exe aligned",))
+gameThread = threading.Thread(target=os.system, args=("BCIGAME.exe",))
 gameThread.start()
 
 #Socket setup

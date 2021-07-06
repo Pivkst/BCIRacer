@@ -25,7 +25,8 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 HEADERS += \
     graphics.h \
     logging.h \
-    network.h
+    network.h \
+    settings.h
 
 win32: LIBS += -lws2_32
 

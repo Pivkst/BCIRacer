@@ -3,6 +3,7 @@
 #include <thread>
 #include <graphics.h>
 #include <stdlib.h> //srand, rand
+#include <settings.h>
 
 int main(int argc, char** argv)
 {
@@ -22,10 +23,6 @@ int main(int argc, char** argv)
     std::thread listenerThread (listener, &buttonState);
 
     //Game setup
-    bool aligned = false;
-    if(argc > 1)
-        if(std::string(argv[1]) == "aligned")
-            aligned = true;
     bool running = true;
     bool paused = true;
     bool gameOver = false;
@@ -33,6 +30,7 @@ int main(int argc, char** argv)
     static int TOP_Y = 50000;
     static int BOTTOM_Y = -2000;
     static int CAR_WIDTH = 240; //This is slightly slimmer than the car texture on purpose
+    bool aligned = getSettingsBool("aligned");
     int playerCarLane = 2; //Used in aligned mode
     SDL_Point playerCar = {SCREEN_WIDTH/8 + SCREEN_WIDTH/4*playerCarLane, 0};
     std::vector<SDL_Point> cars;
@@ -41,6 +39,9 @@ int main(int argc, char** argv)
     std::string debugString = "";
     int lastSpawnFrame = 0;
     int spawnDelay = 200;
+
+    debugString = getSettingsString("testString");
+    getSettingsFromArguments(argc, argv, aligned);
 
     while(running){
         //Check for events
@@ -116,7 +117,6 @@ int main(int argc, char** argv)
             }
             frame++;
         }
-        if(argc>1)debugString = std::string(SDL_GetPixelFormatName(SDL_GetWindowPixelFormat(window)));
         drawGame(frame, playerCar, cars, debugString);
     }
     if(gameOver){
