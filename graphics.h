@@ -320,9 +320,9 @@ void drawGame(double speed, SDL_Point playerCar, std::vector<SDL_Point> cars, st
     //Draw road lines
     for(int y = 0 -liney*lineRate; y<15000; y+=1000){
         scale = mapScale(y);
-        textures[TEXTURE_LINE1]->renderScaled(mapXposition(1*windowSurface->w/4, scale), mapYposition(y), scale*0.5);
-        textures[TEXTURE_LINE2]->renderScaled(mapXposition(2*windowSurface->w/4, scale), mapYposition(y), scale*0.5);
-        textures[TEXTURE_LINE3]->renderScaled(mapXposition(3*windowSurface->w/4, scale), mapYposition(y), scale*0.5);
+        textures[TEXTURE_LINE1]->renderScaled(mapXposition(1*windowSurface->w/4 +20, scale), mapYposition(y), scale*0.5);
+        textures[TEXTURE_LINE2]->renderScaled(mapXposition(2*windowSurface->w/4    , scale), mapYposition(y), scale*0.5);
+        textures[TEXTURE_LINE3]->renderScaled(mapXposition(3*windowSurface->w/4 -20, scale), mapYposition(y), scale*0.5);
     }
 
     //Draw cars
