@@ -39,8 +39,9 @@ int main(int argc, char** argv)
     std::string debugString = "";
     int lastSpawnFrame = 0;
     int spawnDelay = 200;
+    bool noCrash = getSettingsBool("no crash");
+    bool crashed = false;
 
-    debugString = getSettingsString("testString");
     getSettingsFromArguments(argc, argv, aligned);
 
     while(running){
@@ -96,17 +97,22 @@ int main(int argc, char** argv)
                 else if(spawnDelay > 50)
                     spawnDelay -= 2;
             }
-            //Move cars
-            for(auto i = cars.begin(); i<cars.end(); i++){
-                i->y -= 50;
-                //Check for collision
-                if(i->y<0 && i->y>-100 && i->x>(playerCar.x-240) && i->x<(playerCar.x+240)){
-                    running = false;
-                    gameOver = true;
-                    i->y += 50; //Adjust car position back to the player's front
-                    fatalCar = *i;
-                    break;
+            //Move cars and check for collision
+            if(!crashed){
+                for(auto i = cars.begin(); i<cars.end(); i++){
+                    if(!crashed) i->y -= 25;
                 }
+            }
+            crashed = false;
+            for(auto i = cars.begin(); i<cars.end(); i++){
+                if(i->y<200 && i->y>-50 && i->x>(playerCar.x-240) && i->x<(playerCar.x+240)){
+                    fatalCar = *i;
+                    crashed = true;
+                }
+            }
+            if(!noCrash && crashed){
+                running = false;
+                gameOver = true;
             }
             //Clean up offscreen cars
             if(cars.size() > 100){
@@ -115,7 +121,8 @@ int main(int argc, char** argv)
                     firstVisibleCar++;
                 cars.erase(cars.begin(), firstVisibleCar-1);
             }
-            frame++;
+            if(!crashed) frame++;
+            debugString = std::to_string(crashed);
         }
         drawGame(frame, playerCar, cars, debugString);
     }
