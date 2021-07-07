@@ -26,7 +26,6 @@ int main(int argc, char** argv)
     bool running = true;
     bool paused = true;
     bool gameOver = false;
-    int frame = 0;
     static int TOP_Y = 50000;
     static int BOTTOM_Y = -2000;
     static int CAR_WIDTH = 240; //This is slightly slimmer than the car texture on purpose
@@ -37,10 +36,15 @@ int main(int argc, char** argv)
     SDL_Point fatalCar;
     srand(888888);
     std::string debugString = "";
-    int lastSpawnFrame = 0;
-    int spawnDelay = 200;
+    Uint32 spawnDelay = 200*15;
     bool noCrash = getSettingsBool("no crash");
     bool crashed = false;
+    Uint32 timeDelta = 10;
+    Uint32 lastFrameTime = 0;
+    Uint32 lastSpawnTime = 0;
+    Uint32 frameRateCap = 60;
+    Uint32 frameTimeCap = 1000/frameRateCap;
+    double speedFactor = 1.0;
 
     getSettingsFromArguments(argc, argv, aligned);
 
@@ -67,42 +71,49 @@ int main(int argc, char** argv)
             }
         }
 
+        //Move player car
+        double moveFactor = speedFactor*timeDelta;
         if(!paused)
         {
-            //Move player car
             if(aligned){
                 int targetX = SCREEN_WIDTH/8 + playerCarLane*SCREEN_WIDTH/4;
                 if(targetX > playerCar.x+20)
-                    playerCar.x += 20;
+                    playerCar.x += static_cast<int>(1.5*moveFactor);
                 else if(targetX < playerCar.x-20)
-                    playerCar.x -= 20;
+                    playerCar.x -= static_cast<int>(1.5*moveFactor);
             }
             else{
                 if(buttonState == LEFT && playerCar.x >= CAR_WIDTH/2)
-                    playerCar.x-=10;
+                    playerCar.x-=static_cast<int>(0.75*moveFactor);
                 else if(buttonState == RIGHT && playerCar.x <= SCREEN_WIDTH-CAR_WIDTH/2)
-                    playerCar.x+=10;
+                    playerCar.x+=static_cast<int>(0.75*moveFactor);
             }
             //Place new cars
-            if(frame-lastSpawnFrame >= spawnDelay /*rand()%50 == 0*/){
-                SDL_Point newCar;
-                if(aligned)
-                    newCar = {SCREEN_WIDTH/8 + (rand()%4)*SCREEN_WIDTH/4, TOP_Y};
-                else
-                    newCar = {200 + rand()%(SCREEN_WIDTH-400), TOP_Y};
-                cars.push_back(newCar);
-                lastSpawnFrame = frame;
-                if(spawnDelay > 100)
-                    spawnDelay -= 5;
-                else if(spawnDelay > 50)
-                    spawnDelay -= 2;
-            }
-            //Move cars and check for collision
             if(!crashed){
-                for(auto i = cars.begin(); i<cars.end(); i++){
-                    if(!crashed) i->y -= 25;
+                if(SDL_GetTicks() - lastSpawnTime >= spawnDelay /*rand()%50 == 0*/){
+                    SDL_Point newCar;
+                    if(aligned)
+                        newCar = {SCREEN_WIDTH/8 + (rand()%4)*SCREEN_WIDTH/4, TOP_Y};
+                    else
+                        newCar = {200 + rand()%(SCREEN_WIDTH-400), TOP_Y};
+                    cars.push_back(newCar);
+                    lastSpawnTime = SDL_GetTicks();
+                    if(spawnDelay > 1500)
+                        spawnDelay -= 80;
+                    else if(spawnDelay > 500)
+                        spawnDelay -= 30;
                 }
             }
+            else{
+                lastSpawnTime += timeDelta;
+            }
+            //Move cars
+            if(!crashed){
+                for(auto i = cars.begin(); i<cars.end(); i++){
+                    if(!crashed) i->y -= static_cast<int>(5*moveFactor);
+                }
+            }
+            //Check for collision
             crashed = false;
             for(auto i = cars.begin(); i<cars.end(); i++){
                 if(i->y<200 && i->y>-50 && i->x>(playerCar.x-240) && i->x<(playerCar.x+240)){
@@ -121,10 +132,18 @@ int main(int argc, char** argv)
                     firstVisibleCar++;
                 cars.erase(cars.begin(), firstVisibleCar-1);
             }
-            if(!crashed) frame++;
-            debugString = std::to_string(crashed);
         }
-        drawGame(frame, playerCar, cars, debugString);
+        //Wait to cap FPS
+        Uint32 frameTime = SDL_GetTicks();
+        timeDelta = frameTime - lastFrameTime;
+        if(timeDelta < frameTimeCap) SDL_Delay(frameTimeCap - timeDelta);
+        //Calculate time delta and FPS
+        frameTime = SDL_GetTicks();
+        timeDelta = frameTime - lastFrameTime;
+        debugString = "FPS:" + std::to_string(1000/(timeDelta));
+        lastFrameTime = frameTime;
+        //Draw everything
+        drawGame(speedFactor, playerCar, cars, debugString);
     }
     if(gameOver){
         drawGameOver(playerCar, fatalCar);

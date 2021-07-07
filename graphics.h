@@ -55,7 +55,7 @@ bool initEnvironment(std::string windowTitle, int w, int h, bool fullscreen = fa
     windowSurface = SDL_GetWindowSurface(window); //Don't need to free this
     writeToLog("Window initialized");
 
-    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     if(renderer == nullptr){
         logError();
         return false;
@@ -309,15 +309,16 @@ double mapScale(int y){
     return std::max(1.0 - (reScaleY(y)), 0.0);
 }
 
-void drawGame(int frame, SDL_Point playerCar, std::vector<SDL_Point> cars, std::string debug = ""){
-    int liney = frame%20;
+void drawGame(double speed, SDL_Point playerCar, std::vector<SDL_Point> cars, std::string debug = ""){
+    int lineRate = static_cast<int>(speed*7);
+    int liney = static_cast<int>(SDL_GetTicks())%(1000/(lineRate));
     double scale = 0;
     SDL_SetRenderDrawColor(renderer, 0x00, 0xff, 0x00, 0xff);
     SDL_RenderClear(renderer);
     //Draw background
     textures[TEXTURE_BACKGROUND]->render();
     //Draw road lines
-    for(int y = 0 -liney*50; y<15000; y+=1000){
+    for(int y = 0 -liney*lineRate; y<15000; y+=1000){
         scale = mapScale(y);
         textures[TEXTURE_LINE1]->renderScaled(mapXposition(1*windowSurface->w/4, scale), mapYposition(y), scale*0.5);
         textures[TEXTURE_LINE2]->renderScaled(mapXposition(2*windowSurface->w/4, scale), mapYposition(y), scale*0.5);
