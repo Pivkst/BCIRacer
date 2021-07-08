@@ -26,4 +26,8 @@ double getSettingsDouble(LPCSTR name){
     return std::atof(settingsString);
 }
 
+UINT getSettingsInt(LPCSTR name){
+    return GetPrivateProfileIntA("BCIGAME", name, 12345, ".//settings.ini");
+}
+
 #endif // SETTINGS_H

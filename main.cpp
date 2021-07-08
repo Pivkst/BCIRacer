@@ -24,17 +24,19 @@ int main(int argc, char** argv)
 
     //Game setup
     bool running = true;
-    bool paused = true;
+    bool paused = getSettingsBool("start paused");
     bool gameOver = false;
     static int TOP_Y = 50000;
     static int BOTTOM_Y = -2000;
     static int CAR_WIDTH = 240; //This is slightly slimmer than the car texture on purpose
     bool aligned = getSettingsBool("aligned");
-    int playerCarLane = 2; //Used in aligned mode
+    int playerCarLane = static_cast<int>(getSettingsInt("start lane")-1); //Used in aligned mode
+    if(playerCarLane<0) playerCarLane=0;
+    if(playerCarLane>3) playerCarLane=3;
     SDL_Point playerCar = {SCREEN_WIDTH/8 + SCREEN_WIDTH/4*playerCarLane, 0};
     std::vector<SDL_Point> cars;
     SDL_Point fatalCar;
-    srand(888888);
+    srand(getSettingsInt("random seed"));
     std::string debugString = "";
     Uint32 spawnDelay = 200*15;
     bool noCrash = getSettingsBool("no crash");
@@ -42,9 +44,9 @@ int main(int argc, char** argv)
     Uint32 timeDelta = 10;
     Uint32 lastFrameTime = 0;
     Uint32 lastSpawnTime = 0;
-    Uint32 frameRateCap = 60;
+    Uint32 frameRateCap = getSettingsInt("framerate cap");
     Uint32 frameTimeCap = 1000/frameRateCap;
-    double speedFactor = 1.0;
+    double speedFactor = getSettingsDouble("speed factor");
 
     getSettingsFromArguments(argc, argv, aligned);
 
@@ -140,7 +142,8 @@ int main(int argc, char** argv)
         //Calculate time delta and FPS
         frameTime = SDL_GetTicks();
         timeDelta = frameTime - lastFrameTime;
-        debugString = "FPS:" + std::to_string(1000/(timeDelta));
+        if(timeDelta>0)
+            debugString = "FPS:" + std::to_string(1000/(timeDelta));
         lastFrameTime = frameTime;
         //Draw everything
         drawGame(speedFactor, playerCar, cars, debugString);
