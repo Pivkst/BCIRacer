@@ -33,15 +33,15 @@ def recieve():
 #Logic
 left = False
 right = False
-gameStarted = False
+paused = True
+connected = False
 
 def buttonState():
-    if left and right:
-        return "both"
-    elif left:
-        return "left"
-    elif right:
-        return "right"
+    if left != right:
+        if left:
+            return "left"
+        else:
+            return "right"
     else:
         return "none"
 
@@ -49,45 +49,51 @@ def buttonState():
 def checkKeys(event):
     global left
     global right
-    global gameStarted
-    #Wait for SPACE to start the game
-    if not gameStarted:
-        if event.name == 'space':
-            gameStarted = True
+    global paused
+    #Start or pause
+    if event.name == 'space' and event.event_type == keyboard.KEY_DOWN:
+        if paused:
+            paused = False
             send("start")
-            print("Starting game")
-    #Send key state based on input
-    else:
-        if event.name == 'left':
-            if event.event_type == keyboard.KEY_DOWN:
-                left = True
-            else:
-                left = False
-        elif event.name == 'right':
-            if event.event_type == keyboard.KEY_DOWN:
-                right = True
-            else:
-                right = False
+            print("Starting")
         else:
-            return
+            paused = True
+            send("pause")
+            print("Pausing")
+    #Send arrow key state based on input
+    elif event.name == 'left':
+        if event.event_type == keyboard.KEY_DOWN:
+            left = True
+        else:
+            left = False
         send(buttonState())
+    elif event.name == 'right':
+        if event.event_type == keyboard.KEY_DOWN:
+            right = True
+        else:
+            right = False
+        send(buttonState())
+    else:
+        return    
 
 keyboard.hook(checkKeys)
 
 #Set up response reciever
 def reciever():
+    global sock
+    global connected
     while True:
-        global sock
-        global gameStarted
         try:
-            #print("GAME: "+recieve())
             recieve();
+            if not connected:
+                print("Connected")
+            connected = True
         except ConnectionResetError:
-            gameStarted = False;
-            print("Couldn't connect, retrying in 10 seconds")
-            sleep(10)
+            if connected:
+                print("Connection reset")
+            connected = False
+            sleep(1)
             send("hello")
-            #print("Connected?")
 
 recieveThread = threading.Thread(target=reciever, daemon=True)
 recieveThread.start()

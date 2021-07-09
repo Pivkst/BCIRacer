@@ -60,13 +60,14 @@ int main(int argc, char** argv)
             if(e.type == CUSTOM_EVENT_TYPE){
                 switch (e.user.code) {
                 case START: paused = false; break;
-                case STOP: running = false; break;
+                case PAUSE: paused = true; break;
+                case END: running = false; break;
                 case LEFT:
-                    if(playerCarLane>0)
+                    if(playerCarLane>0 and !paused)
                         playerCarLane--;
                     break;
                 case RIGHT:
-                    if(playerCarLane<3)
+                    if(playerCarLane<3 and !paused)
                         playerCarLane++;
                     break;
                 }
@@ -153,11 +154,11 @@ int main(int argc, char** argv)
         while(gameOver){
             //Check for events
             while(SDL_PollEvent(&e) != 0) {
-                switch(e.type){
-                    case SDL_QUIT: gameOver = false; break;
+                if(e.type == SDL_QUIT or (e.type == CUSTOM_EVENT_TYPE and e.user.code == END)){
+                    gameOver = false;
                 }
             }
-            if(buttonState == STOP) gameOver = false;
+            if(buttonState == END) gameOver = false;
         }
     }
     closeLog();

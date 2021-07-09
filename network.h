@@ -93,8 +93,8 @@ enum buttonStates{
     NONE,
     LEFT,
     RIGHT,
-    BOTH,
-    STOP,
+    END,
+    PAUSE,
     START
 };
 
@@ -103,8 +103,8 @@ void listener(int* state){
     const char* noneCode = "none";
     const char* leftCode = "left";
     const char* rightCode = "right";
-    const char* bothCode = "both";
     const char* exitCode = "end";
+    const char* pauseCode = "pause";
     const char* startCode = "start";
     socketData socket;
     initSocket(&socket);
@@ -129,18 +129,21 @@ void listener(int* state){
             sdlEvent.user.code = RIGHT;
             SDL_PushEvent(&sdlEvent);
         }
-        if(strcmp(message, bothCode) == 0)
-            *state = BOTH;
         if(strcmp(message, exitCode) == 0){
-            *state = STOP;
             SDL_Event sdlEvent;
             SDL_memset(&sdlEvent, 0, sizeof(sdlEvent));
             sdlEvent.type = CUSTOM_EVENT_TYPE;
-            sdlEvent.user.code = STOP;
+            sdlEvent.user.code = END;
+            SDL_PushEvent(&sdlEvent);
+        }
+        if(strcmp(message, pauseCode) == 0){
+            SDL_Event sdlEvent;
+            SDL_memset(&sdlEvent, 0, sizeof(sdlEvent));
+            sdlEvent.type = CUSTOM_EVENT_TYPE;
+            sdlEvent.user.code = PAUSE;
             SDL_PushEvent(&sdlEvent);
         }
         if(strcmp(message, startCode) == 0){
-            *state = START;
             SDL_Event sdlEvent;
             SDL_memset(&sdlEvent, 0, sizeof(sdlEvent));
             sdlEvent.type = CUSTOM_EVENT_TYPE;
