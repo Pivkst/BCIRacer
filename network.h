@@ -98,60 +98,42 @@ enum buttonStates{
     START
 };
 
+void createSDLEvent (int code, void* dataPointer=nullptr){
+    SDL_Event sdlEvent;
+    SDL_memset(&sdlEvent, 0, sizeof(sdlEvent));
+    sdlEvent.type = CUSTOM_EVENT_TYPE;
+    sdlEvent.user.code = code;
+    sdlEvent.user.data1 = dataPointer;
+    SDL_PushEvent(&sdlEvent);
+}
+
 void listener(int* state){
     char message[BUFLEN];
-    const char* noneCode = "none";
-    const char* leftCode = "left";
-    const char* rightCode = "right";
-    const char* exitCode = "end";
-    const char* pauseCode = "pause";
-    const char* startCode = "start";
     socketData socket;
     initSocket(&socket);
-    printf("Waiting for data...\n");
+    std::string messageString;
     while(true){
         recieve(&socket, message);
-        if(strcmp(message, noneCode) == 0)
+        messageString = std::string(message);
+        if(messageString == "none")
             *state = NONE;
-        if(strcmp(message, leftCode) == 0){
+        else if(messageString == "left"){
             *state = LEFT;
-            SDL_Event sdlEvent;
-            SDL_memset(&sdlEvent, 0, sizeof(sdlEvent));
-            sdlEvent.type = CUSTOM_EVENT_TYPE;
-            sdlEvent.user.code = LEFT;
-            SDL_PushEvent(&sdlEvent);
+            createSDLEvent(LEFT);
         }
-        if(strcmp(message, rightCode) == 0){
+        else if(messageString == "right"){
             *state = RIGHT;
-            SDL_Event sdlEvent;
-            SDL_memset(&sdlEvent, 0, sizeof(sdlEvent));
-            sdlEvent.type = CUSTOM_EVENT_TYPE;
-            sdlEvent.user.code = RIGHT;
-            SDL_PushEvent(&sdlEvent);
+            createSDLEvent(RIGHT);
         }
-        if(strcmp(message, exitCode) == 0){
-            SDL_Event sdlEvent;
-            SDL_memset(&sdlEvent, 0, sizeof(sdlEvent));
-            sdlEvent.type = CUSTOM_EVENT_TYPE;
-            sdlEvent.user.code = END;
-            SDL_PushEvent(&sdlEvent);
+        else if(messageString == "end"){
+            createSDLEvent(END);
         }
-        if(strcmp(message, pauseCode) == 0){
-            SDL_Event sdlEvent;
-            SDL_memset(&sdlEvent, 0, sizeof(sdlEvent));
-            sdlEvent.type = CUSTOM_EVENT_TYPE;
-            sdlEvent.user.code = PAUSE;
-            SDL_PushEvent(&sdlEvent);
+        else if(messageString == "pause"){
+            createSDLEvent(PAUSE);
         }
-        if(strcmp(message, startCode) == 0){
-            SDL_Event sdlEvent;
-            SDL_memset(&sdlEvent, 0, sizeof(sdlEvent));
-            sdlEvent.type = CUSTOM_EVENT_TYPE;
-            sdlEvent.user.code = START;
-            SDL_PushEvent(&sdlEvent);
+        else if(messageString == "start"){
+            createSDLEvent(START);
         }
-        //printf(" recieved: %s\n" , message);
-        //fflush(stdout);
     }
 }
 
