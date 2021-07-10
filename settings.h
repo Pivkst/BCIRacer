@@ -2,6 +2,7 @@
 #define SETTINGS_H
 #include <string>
 #include <windows.h>
+#include <logging.h>
 
 void getSettingsFromArguments(int argc, char** argv, bool& alignment){
     if(argc > 1)
@@ -9,20 +10,31 @@ void getSettingsFromArguments(int argc, char** argv, bool& alignment){
             alignment = true;
 }
 
+void checkForError(){
+    if(GetLastError() == 0x2){
+        writeToLog("settings.ini not found or invalid");
+        exit(EXIT_FAILURE);
+    }
+}
+
 std::string getSettingsString(LPCSTR name){
     char settingsString[100];
     GetPrivateProfileStringA("BCIGAME", name, "defaultString", settingsString, 100, ".//settings.ini");
+    checkForError();
     return std::string(settingsString);
 }
 
 bool getSettingsBool(LPCSTR name){
-    int value = 0;
-    return GetPrivateProfileIntA("BCIGAME", name, value, ".//settings.ini");
+    bool defaultValue = false;
+    bool value = GetPrivateProfileIntA("BCIGAME", name, defaultValue, ".//settings.ini");
+    checkForError();
+    return value;
 }
 
 double getSettingsDouble(LPCSTR name){
     char settingsString[100];
     GetPrivateProfileStringA("BCIGAME", name, "12345", settingsString, 100, ".//settings.ini");
+    checkForError();
     return std::atof(settingsString);
 }
 
