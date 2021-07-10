@@ -16,7 +16,7 @@ IP = "localhost"
 PORT = 1235
 PORT_GAME = 1234
 
-print("Press SPACE to start game and ESC to quit")
+print("Press SPACE to start/pause game and ESC to quit")
 print("Target IP: ", IP)
 print("Target port: "+str(PORT_GAME))
 
@@ -77,13 +77,9 @@ def checkKeys(event):
         #Start or pause
         elif event.name == 'space':
             if paused:
-                paused = False
                 send("start")
-                print("Starting")
             else:
-                paused = True
                 send("pause")
-                print("Pausing")
     else:
         return    
 
@@ -93,12 +89,28 @@ keyboard.hook(checkKeys)
 def reciever():
     global sock
     global connected
+    global paused
     while True:
         try:
-            recieve();
+            #Try to recieve a code
+            code = recieve()
             if not connected:
                 print("Connected")
             connected = True
+            #Interpret the code
+            if code == "end":
+                print("Game closed")
+                connected = False
+            elif code == "hi":
+                continue
+            elif code == "started":
+                paused = False
+                print("Started")
+            elif code == "paused":
+                paused = True
+                print("Paused")
+            else:
+                print(code)
         except ConnectionResetError:
             if connected:
                 print("Connection reset")

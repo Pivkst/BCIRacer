@@ -5,6 +5,13 @@
 #include <stdlib.h> //srand, rand
 #include <settings.h>
 
+template<class T>
+T clamp(T value, T min, T max){
+    value = value > max ? max : value;
+    value = value < min ? min : value;
+    return value;
+}
+
 int main(int argc, char** argv)
 {
     //SDL setup
@@ -19,8 +26,9 @@ int main(int argc, char** argv)
     SDL_Event e;
 
     //Network setup
+    socketData socket;
     int buttonState = NONE;
-    std::thread listenerThread (listener, &buttonState);
+    std::thread listenerThread (listener, &socket, &buttonState);
 
     //Game setup
     bool running = true;
@@ -39,7 +47,7 @@ int main(int argc, char** argv)
     srand(getSettingsInt("random seed"));
     std::string debugString = "";
     Uint32 spawnDelay = 200*15;
-    bool noCrash = getSettingsBool("no crash");
+    bool noCrashMode = getSettingsBool("no crash");
     bool crashed = false;
     Uint32 timeDelta = 10;
     Uint32 lastFrameTime = 0;
@@ -59,22 +67,36 @@ int main(int argc, char** argv)
             //Check for custom events
             if(e.type == CUSTOM_EVENT_TYPE){
                 switch (e.user.code) {
-                case START: paused = false; break;
-                case PAUSE: paused = true; break;
+                case START:
+                    paused = false;
+                    send(&socket, "started");
+                    break;
+                case PAUSE:
+                    paused = true;
+                    send(&socket, "paused");
+                    break;
                 case END: running = false; break;
                 case LEFT:
-                    if(!paused)
+                    if(!paused){
                         playerCarLane--;
+                        playerCarLane = clamp(playerCarLane, 0, 3);
+                        send(&socket, "atlane-"+std::to_string(playerCarLane+1));
+                    }
                     break;
                 case RIGHT:
-                    if(!paused)
+                    if(!paused){
                         playerCarLane++;
+                        playerCarLane = clamp(playerCarLane, 0, 3);
+                        send(&socket, "atlane-"+std::to_string(playerCarLane+1));
+                    }
                     break;
                 case MOVETO:
                     int* valuePointer = reinterpret_cast<int*>(e.user.data1);
                     debugString = std::to_string(*valuePointer);
                     if(aligned){
                         playerCarLane = (*valuePointer)-1;
+                        playerCarLane = clamp(playerCarLane, 0, 3);
+                        send(&socket, "atlane-"+std::to_string(playerCarLane+1));
                     }
                     delete valuePointer;
                     break;
@@ -87,10 +109,6 @@ int main(int argc, char** argv)
         if(!paused)
         {
             if(aligned){
-                if(playerCarLane < 0)
-                    playerCarLane = 0;
-                else if(playerCarLane > 3)
-                    playerCarLane = 3;
                 int targetX = SCREEN_WIDTH/8 + playerCarLane*SCREEN_WIDTH/4;
                 if(targetX > playerCar.x+20)
                     playerCar.x += static_cast<int>(1.5*moveFactor);
@@ -107,10 +125,15 @@ int main(int argc, char** argv)
             if(!crashed){
                 if(SDL_GetTicks() - lastSpawnTime >= spawnDelay /*rand()%50 == 0*/){
                     SDL_Point newCar;
-                    if(aligned)
-                        newCar = {SCREEN_WIDTH/8 + (rand()%4)*SCREEN_WIDTH/4, TOP_Y};
-                    else
+                    if(aligned){
+                        int lane = rand()%4;
+                        newCar = {SCREEN_WIDTH/8 + lane*SCREEN_WIDTH/4, TOP_Y};
+                        send(&socket, "spawnatlane-"+std::to_string(lane+1));
+                    }
+                    else{
                         newCar = {200 + rand()%(SCREEN_WIDTH-400), TOP_Y};
+                        send(&socket, "spawnat-"+std::to_string(newCar.x));
+                    }
                     cars.push_back(newCar);
                     lastSpawnTime = SDL_GetTicks();
                     if(spawnDelay > 1500)
@@ -129,14 +152,17 @@ int main(int argc, char** argv)
                 }
             }
             //Check for collision
-            crashed = false;
+            bool collision = false;
             for(auto i = cars.begin(); i<cars.end(); i++){
                 if(i->y<200 && i->y>-50 && i->x>(playerCar.x-240) && i->x<(playerCar.x+240)){
                     fatalCar = *i;
-                    crashed = true;
+                    collision = true;
                 }
             }
-            if(!noCrash && crashed){
+            if(!crashed && collision) // ensure the code is only sent once per crash
+                send(&socket, "crash");
+            crashed = collision;
+            if(!noCrashMode && crashed){
                 running = false;
                 gameOver = true;
             }
@@ -163,6 +189,7 @@ int main(int argc, char** argv)
     }
     if(gameOver){
         drawGameOver(playerCar, fatalCar);
+        send(&socket, "gameover");
         while(gameOver){
             //Check for events
             while(SDL_PollEvent(&e) != 0) {
@@ -173,6 +200,7 @@ int main(int argc, char** argv)
             if(buttonState == END) gameOver = false;
         }
     }
+    send(&socket, "end");
     closeLog();
     //Force exit to stop blocked listener thread
     exit(1); //TODO close listener thread with a signal

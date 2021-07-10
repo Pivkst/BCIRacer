@@ -43,7 +43,7 @@ int initSocket(socketData* mySocket){
     mySocket->server.sin_port = htons( PORT );
 
     //Bind
-    if( bind(mySocket->socket_in ,(struct sockaddr *)&mySocket->server , sizeof(mySocket->server)) == SOCKET_ERROR)
+    if( bind(mySocket->socket_in ,reinterpret_cast<struct sockaddr*>(&mySocket->server) , sizeof(mySocket->server)) == SOCKET_ERROR)
     {
         writeToLog("Bind failed with error code : "+std::to_string(WSAGetLastError()));
         exit(EXIT_FAILURE);
@@ -51,7 +51,7 @@ int initSocket(socketData* mySocket){
     writeToLog("Sockets bound");
 
     //Check if the custom SDL event was registered
-    if(CUSTOM_EVENT_TYPE == (Uint32)-1){
+    if(CUSTOM_EVENT_TYPE == Uint32(-1)){
         writeToLog("Failed to register custom SDL event");
         exit(EXIT_FAILURE);
     }
@@ -64,14 +64,36 @@ void closeSocket(socketData* s){
     WSACleanup();
 }
 
-void recieve(socketData* mySocket, char* output){
-    //fflush(stdout);
+void send(socketData* mySocket, std::string data){
+    int bytesSent = sendto(
+                mySocket->socket_out,   //socket
+                data.c_str(),           //data to be transmited
+                static_cast<int>(data.size()*sizeof(char)), //length of data in bytes
+                0,                      //flags
+                reinterpret_cast<struct sockaddr*>(&mySocket->si_other), //target adress
+                mySocket->slen);        //target adress size
+    if(bytesSent == SOCKET_ERROR)
+    {
+        writeToLog("sendto() failed with error code : "+std::to_string(WSAGetLastError()));
+        exit(EXIT_FAILURE);
+    }
+    writeToLog("code:"+data);
+    return;
+}
 
+void recieve(socketData* mySocket, char* output){
     //clear the buffer by filling null, it might have previously received data
     memset(output,'\0', BUFLEN);
 
     //try to receive some data, this is a blocking call
-    if ((mySocket->recv_len = recvfrom(mySocket->socket_in, output, BUFLEN, 0, (struct sockaddr *) &mySocket->si_other, &mySocket->slen)) == SOCKET_ERROR)
+    mySocket->recv_len = recvfrom(
+                mySocket->socket_in,    //socket
+                output,                 //buffer for incoming data
+                BUFLEN,                 //buffer length
+                0,                      //flags
+                reinterpret_cast<struct sockaddr*>(&mySocket->si_other), //source adress
+                &mySocket->slen);       //source adress size
+    if (mySocket->recv_len == SOCKET_ERROR)
     {
         writeToLog("recvfrom() failed with error code : "+std::to_string(WSAGetLastError()));
         exit(EXIT_FAILURE);
@@ -81,12 +103,7 @@ void recieve(socketData* mySocket, char* output){
     //printf("\nReceived packet from %s:%d\n", inet_ntoa(mySocket->si_other.sin_addr), ntohs(mySocket->si_other.sin_port));
 
     //now reply the client with the same data
-    if (sendto(mySocket->socket_out, output, mySocket->recv_len, 0, (struct sockaddr*) &mySocket->si_other, mySocket->slen) == SOCKET_ERROR)
-    {
-        writeToLog("sendto() failed with error code : "+std::to_string(WSAGetLastError()));
-        exit(EXIT_FAILURE);
-    }
-    return;
+    //send(mySocket, std::string(output));
 }
 
 enum buttonStates{
@@ -108,13 +125,12 @@ void createSDLEvent (int code, void* dataPointer=nullptr){
     SDL_PushEvent(&sdlEvent);
 }
 
-void listener(int* state){
+void listener(socketData* socket, int* state){
     char message[BUFLEN];
-    socketData socket;
-    initSocket(&socket);
+    initSocket(socket);
     std::string messageString;
     while(true){
-        recieve(&socket, message);
+        recieve(socket, message);
         messageString = std::string(message);
         if(messageString == "none")
             *state = NONE;
@@ -136,15 +152,14 @@ void listener(int* state){
                 createSDLEvent(MOVETO, valuePointer);
             }
         }
-        else if(messageString == "end"){
+        else if(messageString == "end")
             createSDLEvent(END);
-        }
-        else if(messageString == "pause"){
+        else if(messageString == "pause")
             createSDLEvent(PAUSE);
-        }
-        else if(messageString == "start"){
+        else if(messageString == "start")
             createSDLEvent(START);
-        }
+        else if(messageString == "hello")
+            send(socket, "hi");
     }
 }
 
