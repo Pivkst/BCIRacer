@@ -93,6 +93,7 @@ enum buttonStates{
     NONE,
     LEFT,
     RIGHT,
+    MOVETO,
     END,
     PAUSE,
     START
@@ -124,6 +125,16 @@ void listener(int* state){
         else if(messageString == "right"){
             *state = RIGHT;
             createSDLEvent(RIGHT);
+        }
+        else if(messageString.size()>6){
+            unsigned long long delimiterPosition = messageString.find("-");
+            std::string code = messageString.substr(0, delimiterPosition);
+            if(code == "moveto"){
+                std::string valueString = messageString.substr(delimiterPosition+1, messageString.size());
+                int value = stoi(valueString);
+                int* valuePointer = new int(value);
+                createSDLEvent(MOVETO, valuePointer);
+            }
         }
         else if(messageString == "end"){
             createSDLEvent(END);

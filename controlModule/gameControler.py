@@ -50,18 +50,8 @@ def checkKeys(event):
     global left
     global right
     global paused
-    #Start or pause
-    if event.name == 'space' and event.event_type == keyboard.KEY_DOWN:
-        if paused:
-            paused = False
-            send("start")
-            print("Starting")
-        else:
-            paused = True
-            send("pause")
-            print("Pausing")
     #Send arrow key state based on input
-    elif event.name == 'left':
+    if event.name == 'left':
         if event.event_type == keyboard.KEY_DOWN:
             left = True
         else:
@@ -73,6 +63,27 @@ def checkKeys(event):
         else:
             right = False
         send(buttonState())
+    #Send signals based on other keys
+    if(event.event_type == keyboard.KEY_DOWN):
+        #Absolute moves
+        if event.name == "1":
+            send("moveto-1")
+        elif event.name == "2":
+            send("moveto-2")
+        elif event.name == "3":
+            send("moveto-3")
+        elif event.name == "4":
+            send("moveto-4")
+        #Start or pause
+        elif event.name == 'space':
+            if paused:
+                paused = False
+                send("start")
+                print("Starting")
+            else:
+                paused = True
+                send("pause")
+                print("Pausing")
     else:
         return    
 

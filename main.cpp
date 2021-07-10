@@ -63,12 +63,20 @@ int main(int argc, char** argv)
                 case PAUSE: paused = true; break;
                 case END: running = false; break;
                 case LEFT:
-                    if(playerCarLane>0 and !paused)
+                    if(!paused)
                         playerCarLane--;
                     break;
                 case RIGHT:
-                    if(playerCarLane<3 and !paused)
+                    if(!paused)
                         playerCarLane++;
+                    break;
+                case MOVETO:
+                    int* valuePointer = reinterpret_cast<int*>(e.user.data1);
+                    debugString = std::to_string(*valuePointer);
+                    if(aligned){
+                        playerCarLane = (*valuePointer)-1;
+                    }
+                    delete valuePointer;
                     break;
                 }
             }
@@ -79,6 +87,10 @@ int main(int argc, char** argv)
         if(!paused)
         {
             if(aligned){
+                if(playerCarLane < 0)
+                    playerCarLane = 0;
+                else if(playerCarLane > 3)
+                    playerCarLane = 3;
                 int targetX = SCREEN_WIDTH/8 + playerCarLane*SCREEN_WIDTH/4;
                 if(targetX > playerCar.x+20)
                     playerCar.x += static_cast<int>(1.5*moveFactor);
@@ -143,8 +155,8 @@ int main(int argc, char** argv)
         //Calculate time delta and FPS
         frameTime = SDL_GetTicks();
         timeDelta = frameTime - lastFrameTime;
-        if(timeDelta>0)
-            debugString = "FPS:" + std::to_string(1000/(timeDelta));
+//        if(timeDelta>0)
+//            debugString = "FPS:" + std::to_string(1000/(timeDelta));
         lastFrameTime = frameTime;
         //Draw everything
         drawGame(speedFactor, playerCar, cars, debugString);
