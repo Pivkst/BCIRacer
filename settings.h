@@ -3,6 +3,8 @@
 #include <string>
 #include <windows.h>
 #include <logging.h>
+#include <graphics.h>
+#include <queue>
 
 void getSettingsFromArguments(int argc, char** argv, bool& alignment){
     if(argc > 1)
@@ -40,6 +42,26 @@ double getSettingsDouble(LPCSTR name){
 
 UINT getSettingsInt(LPCSTR name){
     return GetPrivateProfileIntA("BCIGAME", name, 12345, ".//settings.ini");
+}
+
+bool loadCustomCarOrder(std::queue<SDL_Point>* order){
+    static std::ifstream orderFile;
+    std::string fileName = getSettingsString("custom order file");
+    orderFile.open(fileName);
+    if(orderFile.is_open()){
+        std::string line;
+        while(std::getline(orderFile, line)){
+            auto commaPosition = line.find(",");
+            int lane = stoi(line.substr(0, commaPosition));
+            int delay = stoi(line.substr(commaPosition+1, line.size()));
+            SDL_Point car = {lane, delay};
+            order->push(car);
+        }
+        return true;
+    } else {
+        writeToLog("Can't open custom order file "+fileName);
+        return false;
+    }
 }
 
 #endif // SETTINGS_H

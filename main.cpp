@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <network.h>
 #include <thread>
 #include <graphics.h>
@@ -38,9 +37,7 @@ int main(int argc, char** argv)
     static int BOTTOM_Y = -2000;
     static int CAR_WIDTH = 240; //This is slightly slimmer than the car texture on purpose
     bool aligned = getSettingsBool("aligned");
-    int playerCarLane = static_cast<int>(getSettingsInt("start lane")-1); //Used in aligned mode
-    if(playerCarLane<0) playerCarLane=0;
-    if(playerCarLane>3) playerCarLane=3;
+    int playerCarLane = clamp(static_cast<int>(getSettingsInt("start lane")-1), 0, 3); //Used in aligned mode
     SDL_Point playerCar = {SCREEN_WIDTH/8 + SCREEN_WIDTH/4*playerCarLane, 0};
     std::vector<SDL_Point> cars;
     SDL_Point fatalCar;
@@ -55,8 +52,14 @@ int main(int argc, char** argv)
     Uint32 frameRateCap = getSettingsInt("framerate cap");
     Uint32 frameTimeCap = 1000/frameRateCap;
     double speedFactor = getSettingsDouble("speed factor");
+    std::queue<SDL_Point> carOrder;
+    bool usingCustomCarOrder = getSettingsBool("use custom car order");
 
     getSettingsFromArguments(argc, argv, aligned);
+
+    if(usingCustomCarOrder)
+        usingCustomCarOrder = loadCustomCarOrder(&carOrder);
+    debugString = std::to_string(carOrder.size());
 
     while(running){
         //Check for events
@@ -92,7 +95,6 @@ int main(int argc, char** argv)
                     break;
                 case MOVETO:
                     int* valuePointer = reinterpret_cast<int*>(e.user.data1);
-                    debugString = std::to_string(*valuePointer);
                     if(aligned){
                         playerCarLane = (*valuePointer)-1;
                         playerCarLane = clamp(playerCarLane, 0, 3);
@@ -123,24 +125,44 @@ int main(int argc, char** argv)
             }
             //Place new cars
             if(!crashed){
-                if(SDL_GetTicks() - lastSpawnTime >= spawnDelay /*rand()%50 == 0*/){
-                    SDL_Point newCar;
-                    if(aligned){
-                        int lane = rand()%4;
-                        newCar = {SCREEN_WIDTH/8 + lane*SCREEN_WIDTH/4, TOP_Y};
-                        send(&socket, "spawnatlane-"+std::to_string(lane+1));
+                if(usingCustomCarOrder && !carOrder.empty()){
+                    unsigned int customDelay = static_cast<unsigned int>(carOrder.front().y);
+                    while(SDL_GetTicks() - lastSpawnTime >= customDelay && !carOrder.empty()){
+                        SDL_Point newCar;
+                        if(aligned){
+                            int lane = carOrder.front().x-1;
+                            newCar = {SCREEN_WIDTH/8 + lane*SCREEN_WIDTH/4, TOP_Y};
+                            send(&socket, "spawnatlane-"+std::to_string(lane+1));
+                        }
+                        else{
+                            newCar = {200 + clamp(carOrder.front().x, 0, 100)*(SCREEN_WIDTH-400)/100, TOP_Y};
+                            send(&socket, "spawnat-"+std::to_string(newCar.x));
+                        }
+                        carOrder.pop();
+                        cars.push_back(newCar);
+                        lastSpawnTime = SDL_GetTicks();
+                        customDelay = static_cast<unsigned int>(carOrder.front().y);
                     }
-                    else{
-                        newCar = {200 + rand()%(SCREEN_WIDTH-400), TOP_Y};
-                        send(&socket, "spawnat-"+std::to_string(newCar.x));
-                    }
-                    cars.push_back(newCar);
-                    lastSpawnTime = SDL_GetTicks();
-                    if(spawnDelay > 1500)
-                        spawnDelay -= 80;
-                    else if(spawnDelay > 500)
-                        spawnDelay -= 30;
                 }
+                else
+                    if(SDL_GetTicks() - lastSpawnTime >= spawnDelay){
+                        SDL_Point newCar;
+                        if(aligned){
+                            int lane = rand()%4;
+                            newCar = {SCREEN_WIDTH/8 + lane*SCREEN_WIDTH/4, TOP_Y};
+                            send(&socket, "spawnatlane-"+std::to_string(lane+1));
+                        }
+                        else{
+                            newCar = {200 + rand()%(SCREEN_WIDTH-400), TOP_Y};
+                            send(&socket, "spawnat-"+std::to_string(newCar.x));
+                        }
+                        cars.push_back(newCar);
+                        lastSpawnTime = SDL_GetTicks();
+                        if(spawnDelay > 1500)
+                            spawnDelay -= 80;
+                        else if(spawnDelay > 500)
+                            spawnDelay -= 30;
+                    }
             }
             else{
                 lastSpawnTime += timeDelta;
@@ -181,8 +203,12 @@ int main(int argc, char** argv)
         //Calculate time delta and FPS
         frameTime = SDL_GetTicks();
         timeDelta = frameTime - lastFrameTime;
-//        if(timeDelta>0)
-//            debugString = "FPS:" + std::to_string(1000/(timeDelta));
+        int FPS;
+        if(timeDelta>0)
+            FPS = 1000/(timeDelta);
+        else
+            FPS = 1000;
+        //debugString = "FPS:" + std::to_string(FPS);
         lastFrameTime = frameTime;
         //Draw everything
         drawGame(speedFactor, playerCar, cars, debugString);
@@ -203,5 +229,5 @@ int main(int argc, char** argv)
     send(&socket, "end");
     closeLog();
     //Force exit to stop blocked listener thread
-    exit(1); //TODO close listener thread with a signal
+    exit(EXIT_SUCCESS); //TODO close listener thread with a signal
 }
