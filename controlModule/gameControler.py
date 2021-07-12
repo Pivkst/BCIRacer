@@ -121,7 +121,8 @@ def reciever():
 recieveThread = threading.Thread(target=reciever, daemon=True)
 recieveThread.start()
 sleep(1)
-send("hello")
+if not connected:
+    send("hello")
 
 #Wait until ESC is pressed
 keyboard.wait('esc')
