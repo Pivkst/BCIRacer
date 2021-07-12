@@ -74,10 +74,16 @@ void send(socketData* mySocket, std::string data){
                 mySocket->slen);        //target adress size
     if(bytesSent == SOCKET_ERROR)
     {
-        writeToLog("sendto() failed with error code : "+std::to_string(WSAGetLastError()));
+        if(WSAGetLastError() == 10047)
+            writeToLog("No controller connected");
+        else
+            writeToLog("sendto() failed with error code : "+std::to_string(WSAGetLastError()));
         exit(EXIT_FAILURE);
     }
-    writeToLog("code:"+data);
+    //Log sent code with timestamp
+    char time[8];
+    sprintf(time, "%.8i", SDL_GetTicks());
+    writeToLog(std::string(time)+":"+data);
     return;
 }
 
@@ -143,7 +149,7 @@ void listener(socketData* socket, int* state){
             createSDLEvent(RIGHT);
         }
         else if(messageString.size()>6){
-            unsigned long long delimiterPosition = messageString.find("-");
+            auto delimiterPosition = messageString.find("-");
             std::string code = messageString.substr(0, delimiterPosition);
             if(code == "moveto"){
                 std::string valueString = messageString.substr(delimiterPosition+1, messageString.size());
