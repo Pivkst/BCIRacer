@@ -7,7 +7,7 @@
 #include <SDL_ttf.h>
 #include <SDL_image.h>
 #include <string>
-#include <logging.h>
+#include "logging.h"
 #include <vector>
 #include <math.h>
 

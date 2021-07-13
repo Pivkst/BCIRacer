@@ -1,8 +1,8 @@
-#include <network.h>
-#include <thread>
-#include <graphics.h>
+#include "network.h"
+#include "thread"
+#include "graphics.h"
 #include <stdlib.h> //srand, rand
-#include <settings.h>
+#include "settings.h"
 
 template<class T>
 T clamp(T value, T min, T max){

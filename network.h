@@ -3,7 +3,7 @@
 #define SDL_MAIN_HANDLED
 
 #include <winsock2.h>
-#include <logging.h>
+#include "logging.h"
 #include <SDL.h>
 
 #define BUFLEN 512

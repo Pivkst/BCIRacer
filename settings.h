@@ -2,8 +2,8 @@
 #define SETTINGS_H
 #include <string>
 #include <windows.h>
-#include <logging.h>
-#include <graphics.h>
+#include "logging.h"
+#include "graphics.h"
 #include <queue>
 
 void getSettingsFromArguments(int argc, char** argv, bool& alignment){
