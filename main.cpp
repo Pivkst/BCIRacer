@@ -80,14 +80,14 @@ int main(int argc, char** argv)
                     break;
                 case END: running = false; break;
                 case LEFT:
-                    if(!paused){
+                    if(!paused && aligned){
                         playerCarLane--;
                         playerCarLane = clamp(playerCarLane, 0, 3);
                         send(&socket, "atlane-"+std::to_string(playerCarLane+1));
                     }
                     break;
                 case RIGHT:
-                    if(!paused){
+                    if(!paused && aligned){
                         playerCarLane++;
                         playerCarLane = clamp(playerCarLane, 0, 3);
                         send(&socket, "atlane-"+std::to_string(playerCarLane+1));
@@ -99,6 +99,8 @@ int main(int argc, char** argv)
                         playerCarLane = (*valuePointer)-1;
                         playerCarLane = clamp(playerCarLane, 0, 3);
                         send(&socket, "atlane-"+std::to_string(playerCarLane+1));
+                    } else {
+                        playerCar.x = CAR_WIDTH/2 + clamp(*valuePointer, 0, 100) * (SCREEN_WIDTH-CAR_WIDTH)/100;
                     }
                     delete valuePointer;
                     break;
@@ -135,7 +137,7 @@ int main(int argc, char** argv)
                             send(&socket, "spawnatlane-"+std::to_string(lane+1));
                         }
                         else{
-                            newCar = {200 + clamp(carOrder.front().x, 0, 100)*(SCREEN_WIDTH-400)/100, TOP_Y};
+                            newCar = {CAR_WIDTH/2 + clamp(carOrder.front().x, 0, 100)*(SCREEN_WIDTH-CAR_WIDTH)/100, TOP_Y};
                             send(&socket, "spawnat-"+std::to_string(newCar.x));
                         }
                         carOrder.pop();

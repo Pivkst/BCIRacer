@@ -67,13 +67,13 @@ def checkKeys(event):
     if(event.event_type == keyboard.KEY_DOWN):
         #Absolute moves
         if event.name == "1":
-            send("moveto-1")
+            send("moveto-0")
         elif event.name == "2":
-            send("moveto-2")
+            send("moveto-33")
         elif event.name == "3":
-            send("moveto-3")
+            send("moveto-66")
         elif event.name == "4":
-            send("moveto-4")
+            send("moveto-100")
         #Start or pause
         elif event.name == 'space':
             if paused:
