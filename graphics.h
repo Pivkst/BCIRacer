@@ -10,6 +10,9 @@
 #include "logging.h"
 #include <vector>
 #include <math.h>
+#include "CEV_gifUser.c"
+#include "CEV_gifToSurface.c"
+#include "CEV_gifDeflate.c"
 
 void logError(){
     std::string error = SDL_GetError();
@@ -260,6 +263,7 @@ void drawText(int x, int y, std::string text, int fontID = CONSOLA, int colorID=
 
 //Load textures
 static std::vector<LTexture*> textures; //Remember to "delete" textures before removing them from this vector
+static std::vector<CEV_GifAnim*> animations; //and CEV_gifAnimFree() animations
 enum textureNames{
     TEXTURE_LINE1,
     TEXTURE_LINE2,
@@ -287,6 +291,49 @@ bool loadTextures(){
     }
     if(success) writeToLog(std::to_string(textures.size()) + " textures loaded");
     else writeToLog("Textures not loaded properly");
+    file.close();
+    //Load gifs
+    file.open("gifSettings.csv");
+    if(file.is_open()){
+        std::string line;
+        while(std::getline(file, line)){
+            //Separate by commas
+            auto commaPosition = line.find(",");
+            auto comma2Position = line.find(",", commaPosition+1);
+            std::string path = line.substr(0, commaPosition);
+            std::string Xstring = line.substr(commaPosition+1, comma2Position);
+            std::string Ystring = line.substr(comma2Position+1, line.size());
+            //Check if the values are in %
+            int n = 0;
+            int x, y;
+            if((n=Xstring.find("%")) != std::string::npos){
+                x = stoi(Xstring.substr(0, n)) * windowSurface->w/100;
+            } else {
+                x = stoi(Xstring);
+            }
+            if((n=Ystring.find("%")) != std::string::npos){
+                y = stoi(Ystring.substr(0, n)) * windowSurface->h/100;
+            } else {
+                y = stoi(Ystring);
+            }
+            //Load gif
+            CEV_GifAnim* animation = CEV_gifAnimLoad(path.c_str(), renderer);
+            if(animation == NULL){
+                success = false;
+                writeToLog("Can't open "+path);
+                continue;
+            }
+            animation->display.pos.x = x-animation->display.pos.w/2;
+            animation->display.pos.y = y-animation->display.pos.h/2;
+            CEV_gifLoopMode(animation, GIF_REPEAT_FOR);
+            animations.push_back(animation);
+        }
+        writeToLog(std::to_string(animations.size())+" gifs loaded");
+        file.close();
+    } else {
+        writeToLog("Can't open gifSettings.csv");
+        success = false;
+    } 
     return success;
 }
 
@@ -345,6 +392,12 @@ void drawGame(double speed, SDL_Point playerCar, std::vector<SDL_Point> cars, st
     }
     if(debug != "")
         drawText(10, 10, debug);
+    
+    //Draw gifs
+    for(auto animation : animations){
+        CEV_gifAnimAuto(animation);
+        SDL_RenderCopy(renderer, CEV_gifTexture(animation), NULL, &animation->display.pos);
+    }
     SDL_RenderPresent(renderer);
 }
 

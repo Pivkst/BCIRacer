@@ -9,6 +9,7 @@ INCLUDE_PATHS += '-I../../C++ resources/SDL2-2.0.9/x86_64-w64-mingw32/include/SD
 INCLUDE_PATHS += '-I../../C++ resources/SDL2_mixer-2.0.4/x86_64-w64-mingw32/include/SDL2'
 INCLUDE_PATHS += '-I../../C++ resources/SDL2_ttf-2.0.15/x86_64-w64-mingw32/include/SDL2'
 INCLUDE_PATHS += '-I../../C++ resources/SDL2_image-2.0.5/x86_64-w64-mingw32/include/SDL2'
+INCLUDE_PATHS += '-I../../C++ resources/SDL2_giflib_sa'
 
 #LIBRARY_PATHS specifies additional library paths
 LIBRARY_PATHS += '-L../../C++ resources/SDL2-2.0.9/x86_64-w64-mingw32/lib'
