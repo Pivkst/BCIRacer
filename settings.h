@@ -52,10 +52,17 @@ bool loadCustomCarOrder(std::queue<SDL_Point>* order){
         std::string line;
         while(std::getline(orderFile, line)){
             auto commaPosition = line.find(",");
-            int lane = stoi(line.substr(0, commaPosition));
-            int delay = stoi(line.substr(commaPosition+1, line.size()));
-            SDL_Point car = {lane, delay};
-            order->push(car);
+            try{
+                if(commaPosition == std::string::npos) throw;
+                int lane = stoi(line.substr(0, commaPosition));
+                int delay = stoi(line.substr(commaPosition+1, line.size()));
+                SDL_Point car = {lane, delay};
+                order->push(car);
+            }
+            catch(...){
+                writeToLog("Car position \""+line+ "\" is invalid");
+                continue;
+            }
         }
         return true;
     } else {

@@ -31,10 +31,12 @@ int initSocket(socketData* mySocket){
     if((mySocket->socket_in = socket(AF_INET , SOCK_DGRAM , 0 )) == INVALID_SOCKET)
     {
         writeToLog("Could not create socket : "+std::to_string(WSAGetLastError()));
+        exit(EXIT_FAILURE);
     }
     if((mySocket->socket_out = socket(AF_INET , SOCK_DGRAM , 0 )) == INVALID_SOCKET)
     {
         writeToLog("Could not create socket : "+std::to_string(WSAGetLastError()));
+        exit(EXIT_FAILURE);
     }
 
     //Prepare the sockaddr_in structure
