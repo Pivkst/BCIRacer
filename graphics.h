@@ -10,9 +10,11 @@
 #include "logging.h"
 #include <vector>
 #include <math.h>
-#include "CEV_gifUser.c"
-#include "CEV_gifToSurface.c"
-#include "CEV_gifDeflate.c"
+extern "C"{
+    #include "CEV_gifUser.c"
+    #include "CEV_gifToSurface.c"
+    #include "CEV_gifDeflate.c"
+}
 
 void logError(){
     std::string error = SDL_GetError();
