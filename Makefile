@@ -20,7 +20,7 @@ LIBRARY_PATHS += '-L../../C++ resources/SDL2_image-2.0.5/x86_64-w64-mingw32/lib/
 #COMPILER_FLAGS specify the additional compilation options
 # -w suppresses all warnings
 # -Wl,-subsystem,windows gets rid of the console window
-COMPILER_FLAGS = -w -Wl,-subsystem,windows
+COMPILER_FLAGS = -w -Wl,-subsystem,windows -g
 
 #LINKER_FLAGS specifies the libraries we're linking against
 LINKER_FLAGS = -lmingw32 -lSDL2main -lSDL2 -lws2_32 -lSDL2_ttf -lSDL2_mixer -lSDL2_image
