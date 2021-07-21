@@ -15,6 +15,7 @@ extern "C"{
     #include "CEV_gifToSurface.c"
     #include "CEV_gifDeflate.c"
 }
+#include <cstring>
 
 void logError(){
     std::string error = SDL_GetError();
@@ -305,21 +306,9 @@ bool loadTextures(){
                 auto comma2Position = line.find(",", commaPosition+1);
                 if(comma2Position == std::string::npos) throw;
                 std::string path = line.substr(0, commaPosition);
-                std::string Xstring = line.substr(commaPosition+1, comma2Position);
+                std::string Xstring = line.substr(commaPosition+1, comma2Position-(commaPosition+1));
                 std::string Ystring = line.substr(comma2Position+1, line.size());
-                //Check if the values are in %
-                int n = 0;
-                int x, y;
-                if((n=Xstring.find("%")) != std::string::npos){
-                    x = stoi(Xstring.substr(0, n)) * windowSurface->w/100;
-                } else {
-                    x = stoi(Xstring);
-                }
-                if((n=Ystring.find("%")) != std::string::npos){
-                    y = stoi(Ystring.substr(0, n)) * windowSurface->h/100;
-                } else {
-                    y = stoi(Ystring);
-                }            
+
                 //Load gif
                 CEV_GifAnim* animation = CEV_gifAnimLoad(path.c_str(), renderer);
                 if(animation == NULL){
@@ -327,9 +316,48 @@ bool loadTextures(){
                     writeToLog("Can't open "+path);
                     continue;
                 }
+                CEV_gifLoopMode(animation, GIF_REPEAT_FOR);
+                
+                //Set position
+                int start, pos;
+                int x, y;
+                //The comment attribute is used to store whether the coordinates are relative to the player car
+                free(animation->status.comment);
+                char* comment = new char[3];
+                animation->status.comment = comment;
+                strcpy(animation->status.comment, "nn\0");
+
+                start = 0;
+                //Check if the value is relative
+                if((start=Xstring.find("R")) != std::string::npos){
+                    animation->status.comment[0] = 'x'; //Set x to be relative
+                    x = stoi(Xstring.substr(start+1));
+                } else {
+                    //Check if the value is in %
+                    if((pos=Xstring.find("%")) != std::string::npos){
+                        x = stoi(Xstring.substr(0, pos)) * windowSurface->w/100;
+                    } else {
+                        x = stoi(Xstring);
+                    }
+                }
+                
+                start = 0;
+                //Check if the value is relative
+                if((start=Ystring.find("R")) != std::string::npos){
+                    animation->status.comment[1] = 'y'; //Set y to be relative
+                    y = stoi(Ystring.substr(start+1));
+                } else {
+                    //Check if the value is in %
+                    if((pos=Ystring.find("%")) != std::string::npos){
+                        y = stoi(Ystring.substr(0, pos)) * windowSurface->h/100;
+                    } else {
+                        y = stoi(Ystring);
+                    }
+                }           
+
                 animation->display.pos.x = x-animation->display.pos.w/2;
                 animation->display.pos.y = y-animation->display.pos.h/2;
-                CEV_gifLoopMode(animation, GIF_REPEAT_FOR);
+                
                 animations.push_back(animation);
             }
             catch(...){
@@ -405,7 +433,14 @@ void drawGame(double speed, SDL_Point playerCar, std::vector<SDL_Point> cars, st
     //Draw gifs
     for(auto animation : animations){
         CEV_gifAnimAuto(animation);
-        SDL_RenderCopy(renderer, CEV_gifTexture(animation), NULL, &animation->display.pos);
+        SDL_Rect drawRect = animation->display.pos;
+        scale = mapScale(playerCar.y);
+        if(strchr(animation->status.comment, 'x') != nullptr)
+            drawRect.x = mapXposition(playerCar.x, scale) + drawRect.x;
+        if(strchr(animation->status.comment, 'y') != nullptr){
+            drawRect.y = mapYposition(playerCar.y) + drawRect.y;
+        }
+        SDL_RenderCopy(renderer, CEV_gifTexture(animation), NULL, &drawRect);
     }
     SDL_RenderPresent(renderer);
 }

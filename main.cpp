@@ -55,15 +55,6 @@ int main(int argc, char** argv)
     std::queue<SDL_Point> carOrder;
     bool usingCustomCarOrder = getSettingsBool("use custom car order");
 
-    //Test
-    CEV_GifAnim* testAnimation;
-    testAnimation = CEV_gifAnimLoad("BLACKWHITE.gif", renderer);
-    testAnimation->display.pos.x = 500;
-    testAnimation->display.pos.y = 500;
-    CEV_gifLoopMode(testAnimation, GIF_REPEAT_FOR);
-    Uint32 lastUpdate = 0;
-    int updateAmount = 0;
-
     getSettingsFromArguments(argc, argv, aligned);
 
     if(usingCustomCarOrder)
@@ -71,13 +62,6 @@ int main(int argc, char** argv)
     debugString = std::to_string(carOrder.size());
 
     while(running){
-        if(CEV_gifAnimAuto(testAnimation)){
-            auto now = SDL_GetTicks();
-            writeToLog(std::to_string(now - lastUpdate)); //Should be 500
-            lastUpdate = now;
-            updateAmount++;
-            if(updateAmount >165) exit(1);
-        }
         //Check for events
         while(SDL_PollEvent(&e) != 0) {
             switch(e.type){
