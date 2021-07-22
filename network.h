@@ -5,10 +5,10 @@
 #include <winsock2.h>
 #include "logging.h"
 #include <SDL.h>
+#include "settings.h"
 
 #define BUFLEN 512
-#define PORT 1234
-
+static const int PORT = getSettingsInt("port");
 static const Uint32 CUSTOM_EVENT_TYPE = SDL_RegisterEvents(1);
 
 struct socketData{
