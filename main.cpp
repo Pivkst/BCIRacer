@@ -59,7 +59,6 @@ int main(int argc, char** argv)
 
     if(usingCustomCarOrder)
         usingCustomCarOrder = loadCustomCarOrder(&carOrder);
-    debugString = std::to_string(carOrder.size());
 
     while(running){
         //Check for events
@@ -129,7 +128,7 @@ int main(int argc, char** argv)
             if(!crashed){
                 if(usingCustomCarOrder && !carOrder.empty()){
                     unsigned int customDelay = static_cast<unsigned int>(carOrder.front().y);
-                    while(SDL_GetTicks() - lastSpawnTime >= customDelay && !carOrder.empty()){
+                    while(SDL_GetTicks() - lastSpawnTime >= (customDelay / speedFactor) && !carOrder.empty()){
                         SDL_Point newCar;
                         if(aligned){
                             int lane = carOrder.front().x-1;
@@ -147,7 +146,7 @@ int main(int argc, char** argv)
                     }
                 }
                 else
-                    if(SDL_GetTicks() - lastSpawnTime >= spawnDelay){
+                    if(SDL_GetTicks() - lastSpawnTime >= (spawnDelay / speedFactor)){
                         SDL_Point newCar;
                         if(aligned){
                             int lane = rand()%4;
