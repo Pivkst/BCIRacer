@@ -301,6 +301,8 @@ bool loadTextures(){
         std::string line;
         while(std::getline(file, line)){
             try{
+                if(line.front() == '#')
+                    continue;
                 //Separate by commas
                 auto commaPosition = line.find(",");
                 auto comma2Position = line.find(",", commaPosition+1);
