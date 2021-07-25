@@ -51,6 +51,8 @@ bool loadCustomCarOrder(std::queue<SDL_Point>* order){
     if(orderFile.is_open()){
         std::string line;
         while(std::getline(orderFile, line)){
+            if(line.front() == '#')
+                continue;
             auto commaPosition = line.find(",");
             try{
                 if(commaPosition == std::string::npos) throw;
