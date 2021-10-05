@@ -1,3 +1,5 @@
+//Copyright 2021 Jan Tomšič Pivk
+
 #include "network.h"
 #include "thread"
 #include "graphics.h"

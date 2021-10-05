@@ -1,3 +1,5 @@
+//Copyright 2021 Jan Tomšič Pivk
+
 #ifndef SETTINGS_H
 #define SETTINGS_H
 #include <string>

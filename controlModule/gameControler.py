@@ -1,3 +1,5 @@
+#Copyright 2021 Jan Tomšič Pivk
+
 import socket
 import keyboard
 import threading

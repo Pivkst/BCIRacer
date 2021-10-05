@@ -1,3 +1,5 @@
+//Copyright 2021 Jan Tomšič Pivk
+
 #ifndef NETWORK_H
 #define NETWORK_H
 #define SDL_MAIN_HANDLED

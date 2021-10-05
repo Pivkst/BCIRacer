@@ -1,3 +1,5 @@
+//Copyright 2021 Jan Tomšič Pivk
+
 #ifndef GRAPHICS_H
 #define GRAPHICS_H
 

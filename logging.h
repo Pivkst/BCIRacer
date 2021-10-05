@@ -1,3 +1,5 @@
+//Copyright 2021 Jan Tomšič Pivk
+
 #ifndef LOGGING_H
 #define LOGGING_H
 
